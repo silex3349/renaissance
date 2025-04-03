@@ -7,8 +7,13 @@ import Onboarding from "../onboarding/Onboarding";
 const Layout = () => {
   const { user } = useAuth();
   
-  // Check if user exists and has no interests yet
-  const shouldShowOnboarding = user && (!user.interests || user.interests.length === 0);
+  // Check if user exists and has completed the necessary onboarding steps
+  const shouldShowOnboarding = user && (
+    !user.interests || 
+    user.interests.length === 0 || 
+    !user.ageRange || 
+    !user.location
+  );
 
   return (
     <div className="min-h-screen flex flex-col">

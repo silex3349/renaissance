@@ -11,6 +11,8 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Discover from "./pages/Discover";
 import Profile from "./pages/Profile";
+import Events from "./pages/Events";
+import Matching from "./pages/Matching";
 
 // Create a client for React Query
 const queryClient = new QueryClient();
@@ -26,6 +28,9 @@ const App = () => (
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="discover" element={<Discover />} />
+              <Route path="events" element={<Events />} />
+              <Route path="events/:id" element={<Events />} />
+              <Route path="matching" element={<Matching />} />
               <Route path="profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Route>

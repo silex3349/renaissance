@@ -1,5 +1,5 @@
 
-import { User } from "@/types";
+import { User, Interest } from "@/types";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,6 +11,10 @@ interface AuthContextType {
   signOut: () => void;
   updateUserInterests: (interests: string[]) => void;
   updateUserLocation: (latitude: number, longitude: number) => void;
+  updateUserAgeRange: (ageRange: string) => void;
+  joinEvent: (eventId: string) => void;
+  leaveEvent: (eventId: string) => void;
+  likeUser: (userId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -140,6 +144,77 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
   };
 
+  const updateUserAgeRange = (ageRange: string) => {
+    if (!user) return;
+    
+    const updatedUser = {
+      ...user,
+      ageRange,
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+  };
+
+  const joinEvent = (eventId: string) => {
+    if (!user) return;
+    
+    if (user.joinedEvents.includes(eventId)) {
+      return; // Already joined
+    }
+    
+    const updatedUser = {
+      ...user,
+      joinedEvents: [...user.joinedEvents, eventId]
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+    
+    toast({
+      title: "Event joined",
+      description: "You have successfully joined this event",
+    });
+  };
+
+  const leaveEvent = (eventId: string) => {
+    if (!user) return;
+    
+    const updatedUser = {
+      ...user,
+      joinedEvents: user.joinedEvents.filter(id => id !== eventId)
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+    
+    toast({
+      title: "Event left",
+      description: "You have been removed from this event",
+    });
+  };
+
+  const likeUser = (userId: string) => {
+    if (!user) return;
+    
+    if (user.matchedUsers.includes(userId)) {
+      return; // Already matched
+    }
+    
+    const updatedUser = {
+      ...user,
+      matchedUsers: [...user.matchedUsers, userId]
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+    
+    toast({
+      title: "User liked",
+      description: "If they like you back, it's a match!",
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -150,6 +225,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signOut,
         updateUserInterests,
         updateUserLocation,
+        updateUserAgeRange,
+        joinEvent,
+        leaveEvent,
+        likeUser,
       }}
     >
       {children}
@@ -167,3 +246,4 @@ export const useAuth = () => {
 
 // Import from services at the end to avoid circular dependencies
 import { INTERESTS } from "@/services/mockData";
+

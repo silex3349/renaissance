@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { Calendar, Search, Settings, User } from "lucide-react";
+import { Calendar, Search, Settings, User, Heart, Users } from "lucide-react";
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -29,6 +29,12 @@ const Header = () => {
                 <Link to="/events">
                   <Calendar className="h-4 w-4 mr-2" />
                   Events
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                <Link to="/matching">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Matching
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>

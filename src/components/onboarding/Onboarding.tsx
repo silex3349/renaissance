@@ -3,12 +3,13 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import InterestSelector from "@/components/profile/InterestSelector";
 import LocationDetection from "@/components/location/LocationDetection";
+import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
 import { useNavigate } from "react-router-dom";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
-  const totalSteps = 2;
+  const totalSteps = 3;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -45,6 +46,10 @@ const Onboarding = () => {
             )}
             
             {step === 2 && (
+              <AgeRangeSelector onComplete={handleNext} />
+            )}
+            
+            {step === 3 && (
               <LocationDetection onComplete={handleNext} />
             )}
           </CardContent>

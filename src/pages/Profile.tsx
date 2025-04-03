@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InterestSelector from "@/components/profile/InterestSelector";
 import LocationDetection from "@/components/location/LocationDetection";
+import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Profile = () => {
@@ -58,19 +59,32 @@ const Profile = () => {
                     <p>{user.location.city || "Location set"}</p>
                   </div>
                 )}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Joined Events</p>
+                  <p>{user.joinedEvents.length} events</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Matched Users</p>
+                  <p>{user.matchedUsers.length} matches</p>
+                </div>
               </div>
             </CardContent>
           </Card>
           
           <div className="md:col-span-2">
             <Tabs defaultValue="interests">
-              <TabsList className="w-full grid grid-cols-2">
+              <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger value="interests">Interests</TabsTrigger>
+                <TabsTrigger value="age">Age Range</TabsTrigger>
                 <TabsTrigger value="location">Location</TabsTrigger>
               </TabsList>
               
               <TabsContent value="interests" className="pt-4">
                 <InterestSelector />
+              </TabsContent>
+              
+              <TabsContent value="age" className="pt-4">
+                <AgeRangeSelector />
               </TabsContent>
               
               <TabsContent value="location" className="pt-4">
