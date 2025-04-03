@@ -1,11 +1,16 @@
-
-import { useState } from "react";
-import { Heart, X, Info } from "lucide-react";
+import React, { useState } from "react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Event } from "@/types";
-import { motion, PanInfo, useAnimation } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Check, X, Calendar, MapPin, Users } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Swipe threshold - if surpassed, it's considered a full swipe
+const SWIPE_THRESHOLD = 100;
 
 interface SwipeCardProps {
   event: Event;
@@ -14,212 +19,130 @@ interface SwipeCardProps {
 }
 
 const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
-  const controls = useAnimation();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [exitX, setExitX] = useState(0);
-  const [direction, setDirection] = useState<"left" | "right" | null>(null);
+  const [swipedDirection, setSwipedDirection] = useState<"left" | "right" | null>(null);
+  const x = useMotionValue(0);
 
-  const handleDragEnd = (
-    _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
-    const threshold = 100;
-    
-    if (info.offset.x > threshold) {
-      // Swiped right - like
-      setExitX(window.innerWidth);
-      setDirection("right");
-      controls.start({ x: window.innerWidth, opacity: 0 });
-      onSwipe("right", event);
-    } else if (info.offset.x < -threshold) {
-      // Swiped left - pass
-      setExitX(-window.innerWidth);
-      setDirection("left");
-      controls.start({ x: -window.innerWidth, opacity: 0 });
-      onSwipe("left", event);
+  // Determine background color based on swipe direction
+  const background = useTransform(
+    x,
+    [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD],
+    ["#FFDCDC", "#FFFFFF", "#D4FFD4"]
+  );
+
+  // Determine opacity of like/dislike icons based on swipe
+  const opacity = useTransform(
+    x,
+    [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD],
+    [1, 0, 1]
+  );
+
+  const { user } = useAuth();
+
+  const handleSwipe = (direction: "left" | "right") => {
+    setSwipedDirection(direction);
+    onSwipe(direction, event);
+  };
+
+  const dragConstraints = { left: -200, right: 200 };
+
+  const handleDrag = (event: any, info: any) => {
+    x.set(info.point.x);
+  };
+
+  const handleDragEnd = () => {
+    if (x.get() < -SWIPE_THRESHOLD) {
+      handleSwipe("left");
+    } else if (x.get() > SWIPE_THRESHOLD) {
+      handleSwipe("right");
     } else {
-      // Not enough swipe distance, return to center
-      controls.start({ x: 0, opacity: 1 });
+      x.set(0); // Reset position if swipe is not past threshold
     }
-  };
-
-  const handleDrag = (_: any, info: PanInfo) => {
-    // Calculate rotation based on drag distance
-    const rotate = info.offset.x * 0.05;
-    controls.start({ 
-      x: info.offset.x, 
-      rotate: rotate, 
-      opacity: 1 - (Math.abs(info.offset.x) / (window.innerWidth / 2))
-    });
-  };
-
-  const renderEventDate = () => {
-    const date = new Date(event.dateTime);
-    return date.toLocaleDateString(undefined, { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
-
-  const handleViewDetails = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigate(`/events/${event.id}`);
-  };
-
-  // Styles and animations for the swipe action buttons
-  const buttonVariants = {
-    initial: { scale: 0.8, opacity: 0.5 },
-    hover: { scale: 1, opacity: 1 }
   };
 
   return (
     <motion.div
       className={cn(
-        "absolute top-0 left-0 right-0 h-full w-full cursor-grab active:cursor-grabbing",
-        !isActive && "pointer-events-none"
+        "absolute top-0 left-0 w-full h-full",
+        isActive ? "block" : "hidden"
       )}
-      drag={isActive ? "x" : false}
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      onDragEnd={handleDragEnd}
-      onDrag={handleDrag}
-      animate={controls}
-      initial={{ x: 0, opacity: isActive ? 1 : 0, scale: isActive ? 1 : 0.9, rotate: 0 }}
-      exit={{ 
-        x: exitX, 
-        opacity: 0,
-        transition: { duration: 0.2 }
+      style={{
+        zIndex: isActive ? 1 : 0,
       }}
-      transition={{ type: "spring", damping: 50, stiffness: 500 }}
-      style={{ zIndex: isActive ? 10 : 0 }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
     >
-      <div className="w-full h-full bg-card rounded-xl overflow-hidden shadow-lg flex flex-col">
-        {/* Event image */}
-        <div className="relative h-3/5 bg-muted overflow-hidden">
-          {event.imageUrl ? (
-            <img 
-              src={event.imageUrl} 
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full bg-gradient-to-br from-primary/20 to-primary/10">
-              <span className="text-primary text-6xl opacity-40">⚡</span>
-            </div>
-          )}
-          
-          {/* Overlays for swipe directions */}
-          <motion.div 
-            className="absolute inset-0 bg-green-500/30 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: direction === "right" ? 0.7 : 0 }}
-          >
-            <Heart className="w-24 h-24 text-white" />
-          </motion.div>
-          
-          <motion.div 
-            className="absolute inset-0 bg-red-500/30 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: direction === "left" ? 0.7 : 0 }}
-          >
-            <X className="w-24 h-24 text-white" />
-          </motion.div>
-          
-          {/* Floating event date */}
-          <div className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full">
-            <span className="font-medium">{renderEventDate()}</span>
-          </div>
-        </div>
-        
-        {/* Event details */}
-        <div className="p-5 flex-grow flex flex-col">
-          <h2 className="text-2xl font-bold mb-1 line-clamp-1">{event.title}</h2>
-          
-          <div className="text-sm text-muted-foreground mb-3 flex items-center">
-            <span className="flex items-center">
-              <MapPin className="w-4 h-4 mr-1" />
-              {event.location.city || "Nearby"}
-            </span>
-            <span className="mx-2">•</span>
-            <span>{event.attendees.length} attending</span>
-          </div>
-          
-          <p className="text-muted-foreground mb-4 line-clamp-2">{event.description}</p>
-          
-          {/* Interest tags */}
-          <div className="flex flex-wrap gap-1 mt-auto mb-4">
-            {event.interests.slice(0, 3).map(interest => (
-              <span 
-                key={interest.id}
-                className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs"
-              >
-                {interest.name}
-              </span>
-            ))}
-            {event.interests.length > 3 && (
-              <span className="px-2 py-0.5 bg-muted text-muted-foreground rounded-full text-xs">
-                +{event.interests.length - 3} more
-              </span>
+      <motion.div
+        className="relative h-full w-full"
+        style={{ background }}
+        drag="x"
+        dragConstraints={dragConstraints}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
+        style={{ x }}
+      >
+        <motion.div
+          className="absolute left-4 top-4 z-10 rounded-full bg-red-500 p-2 text-white"
+          style={{ opacity }}
+        >
+          <X className="h-6 w-6" />
+        </motion.div>
+        <motion.div
+          className="absolute right-4 top-4 z-10 rounded-full bg-green-500 p-2 text-white"
+          style={{ opacity }}
+        >
+          <Check className="h-6 w-6" />
+        </motion.div>
+
+        <Card className="h-full w-full">
+          <CardContent className="aspect-video relative rounded-md overflow-hidden bg-muted">
+            {event.imageUrl ? (
+              <img
+                src={event.imageUrl}
+                alt={event.title}
+                className="object-cover w-full h-full"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <Calendar className="h-12 w-12 opacity-20" />
+              </div>
             )}
+          </CardContent>
+          <div className="p-4">
+            <h2 className="text-lg font-semibold">{event.title}</h2>
+            <p className="text-sm text-muted-foreground">{event.location}</p>
+            <div className="mt-2 flex flex-wrap gap-1">
+              {event.interests.map((interest) => (
+                <Badge key={interest.id} variant="secondary">
+                  {interest.name}
+                </Badge>
+              ))}
+            </div>
           </div>
-          
-          {/* Action button */}
-          <button
-            onClick={handleViewDetails}
-            className="flex items-center justify-center gap-1 text-sm text-primary font-medium"
-          >
-            <Info className="w-4 h-4" />
-            View Details
-          </button>
-        </div>
-      </div>
-      
-      {/* Swipe action buttons */}
-      {isActive && (
-        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-10 pointer-events-none">
-          <motion.button
-            className="w-16 h-16 bg-white shadow-lg rounded-full flex items-center justify-center pointer-events-auto"
-            onClick={() => {
-              controls.start({ 
-                x: -window.innerWidth, 
-                opacity: 0,
-                transition: { duration: 0.3 }
-              });
-              setDirection("left");
-              onSwipe("left", event);
-            }}
-            variants={buttonVariants}
-            initial="initial"
-            whileHover="hover"
-            transition={{ type: "spring", stiffness: 500 }}
-          >
-            <X className="w-8 h-8 text-red-500" />
-          </motion.button>
-          
-          <motion.button
-            className="w-16 h-16 bg-white shadow-lg rounded-full flex items-center justify-center pointer-events-auto"
-            onClick={() => {
-              controls.start({ 
-                x: window.innerWidth, 
-                opacity: 0,
-                transition: { duration: 0.3 }
-              });
-              setDirection("right");
-              onSwipe("right", event);
-              toast({
-                title: "Event liked!",
-                description: "This event has been added to your interests",
-              });
-            }}
-            variants={buttonVariants}
-            initial="initial"
-            whileHover="hover"
-            transition={{ type: "spring", stiffness: 500 }}
-          >
-            <Heart className="w-8 h-8 text-green-500" />
-          </motion.button>
-        </div>
-      )}
+          <CardFooter className="flex justify-between items-center">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              {format(new Date(event.date), "MMM d, yyyy")}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (swipedDirection === "right") {
+                  // User swiped right, navigate to event details
+                  window.open(`/events/${event.id}`, "_blank");
+                } else {
+                  // User swiped left, show a message or do nothing
+                  console.log("Swiped left, no action taken");
+                }
+              }}
+              disabled={swipedDirection !== "right"}
+            >
+              {swipedDirection === "right" ? "View Event" : "Pass"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </motion.div>
   );
 };
