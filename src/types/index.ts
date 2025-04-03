@@ -7,6 +7,7 @@ export type User = {
   location?: GeoLocation;
   joinedEvents: string[];
   matchedUsers: string[];
+  joinedGroups?: string[];
   createdAt: Date;
 };
 
@@ -36,6 +37,7 @@ export type Event = {
   attendees: string[];
   imageUrl?: string;
   maxAttendees?: number;
+  groupId?: string;
 };
 
 export type Group = {
@@ -56,4 +58,33 @@ export type Match = {
   commonInterests: string[];
   status: "pending" | "accepted" | "declined";
   createdAt: Date;
+};
+
+export type NotificationType = 
+  | "groupInvite" 
+  | "joinRequest" 
+  | "eventReminder" 
+  | "newMessage" 
+  | "eventCreated"
+  | "matchSuccess"
+  | "joinedGroup";
+
+export type Notification = {
+  id: string;
+  type: NotificationType;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  actionUrl?: string;
+  avatar?: string;
+  data?: Record<string, any>;
+};
+
+export type ChatMessage = {
+  id: string;
+  groupId?: string;
+  senderId: string;
+  text: string;
+  timestamp: Date;
+  read: boolean;
 };

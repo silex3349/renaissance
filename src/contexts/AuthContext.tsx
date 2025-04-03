@@ -1,7 +1,8 @@
 
-import { User, Interest } from "@/types";
+import { User, Interest, Group } from "@/types";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,14 @@ interface AuthContextType {
   joinEvent: (eventId: string) => void;
   leaveEvent: (eventId: string) => void;
   likeUser: (userId: string) => void;
+  joinGroup: (groupId: string) => void;
+  leaveGroup: (groupId: string) => void;
+  createGroup: (groupData: {
+    name: string;
+    description: string;
+    isPrivate: boolean;
+    interestIds: string[];
+  }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     // Check if user is logged in from localStorage
@@ -49,6 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           interests: [],
           joinedEvents: [],
           matchedUsers: [],
+          joinedGroups: [],
           createdAt: new Date(),
         };
         
@@ -81,6 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           interests: [],
           joinedEvents: [],
           matchedUsers: [],
+          joinedGroups: [],
           createdAt: new Date(),
         };
         
@@ -214,6 +226,83 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       description: "If they like you back, it's a match!",
     });
   };
+  
+  const joinGroup = (groupId: string) => {
+    if (!user) return;
+    
+    if (user.joinedGroups?.includes(groupId)) {
+      return; // Already joined
+    }
+    
+    const updatedUser = {
+      ...user,
+      joinedGroups: [...(user.joinedGroups || []), groupId]
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+    
+    // Notify user
+    addNotification({
+      type: "joinedGroup",
+      message: "You have joined a new group",
+      actionUrl: `/groups/${groupId}`,
+    });
+  };
+  
+  const leaveGroup = (groupId: string) => {
+    if (!user || !user.joinedGroups) return;
+    
+    const updatedUser = {
+      ...user,
+      joinedGroups: user.joinedGroups.filter(id => id !== groupId)
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+  };
+  
+  const createGroup = (groupData: {
+    name: string;
+    description: string;
+    isPrivate: boolean;
+    interestIds: string[];
+  }) => {
+    if (!user) return;
+    
+    // Mock creating a group - in a real app this would call your backend
+    const newGroup: Group = {
+      id: `group_${Date.now()}`,
+      name: groupData.name,
+      description: groupData.description,
+      isPrivate: groupData.isPrivate,
+      interests: groupData.interestIds.map(id => 
+        INTERESTS.find(interest => interest.id === id) || { 
+          id, 
+          name: "Unknown Interest", 
+          category: "Other" 
+        }
+      ),
+      members: [user.id],
+      events: [],
+      createdAt: new Date(),
+      creator: user.id
+    };
+    
+    // In a real app, you would save this to the database
+    // For our mock app, we'll just add the group ID to the user's groups
+    const updatedUser = {
+      ...user,
+      joinedGroups: [...(user.joinedGroups || []), newGroup.id]
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+    
+    // We would also update a groups collection in a real app
+    // Here we'll just add to our mock data for demo purposes
+    MOCK_GROUPS.push(newGroup);
+  };
 
   return (
     <AuthContext.Provider
@@ -229,6 +318,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         joinEvent,
         leaveEvent,
         likeUser,
+        joinGroup,
+        leaveGroup,
+        createGroup,
       }}
     >
       {children}
@@ -245,5 +337,4 @@ export const useAuth = () => {
 };
 
 // Import from services at the end to avoid circular dependencies
-import { INTERESTS } from "@/services/mockData";
-
+import { INTERESTS, MOCK_GROUPS } from "@/services/mockData";
