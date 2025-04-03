@@ -25,26 +25,26 @@ const Header = () => {
                   Discover
                 </Button>
               </Link>
-              <Link to="/events">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                <Link to="/events">
                   <Calendar className="h-4 w-4 mr-2" />
                   Events
-                </Button>
-              </Link>
-              <Link to="/profile">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                <Link to="/profile">
                   <User className="h-4 w-4 mr-2" />
                   Profile
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </nav>
             
             <div className="flex items-center gap-1">
-              <Link to="/settings">
-                <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/settings">
                   <Settings className="h-5 w-5" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" onClick={signOut}>
                 Sign Out
               </Button>
@@ -52,12 +52,12 @@ const Header = () => {
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <Link to="/signin">
-              <Button variant="outline" size="sm">Sign In</Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/signin">Sign In</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link to="/signup">Sign Up</Link>
+            </Button>
           </div>
         )}
       </div>
