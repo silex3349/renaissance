@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MOCK_EVENTS, MOCK_USERS } from "@/services/mockData";
-import { EventCard } from "@/components/events/EventCard";
-import { EventList } from "@/components/events/EventList";
+import EventCard from "@/components/events/EventCard";
+import EventList from "@/components/events/EventList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,7 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SwipeUserCard } from "@/components/matching/SwipeUserCard";
+import SwipeUserCard from "@/components/matching/SwipeUserCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { Event, User as UserType } from "@/types";
 import { format } from "date-fns";
@@ -64,7 +65,7 @@ const Events = () => {
       (activeTab === "joined" &&
         user?.joinedEvents.includes(event.id)) ||
       (activeTab === "upcoming" &&
-        new Date(event.date) > new Date());
+        new Date(event.dateTime) > new Date());
     return matchesSearch && matchesTab;
   });
 
@@ -136,16 +137,16 @@ const Events = () => {
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {format(new Date(currentEvent.date), "EEEE, MMMM d, yyyy")}
+                      {format(new Date(currentEvent.dateTime), "EEEE, MMMM d, yyyy")}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {format(new Date(currentEvent.date), "h:mm a")} to{" "}
+                      {format(new Date(currentEvent.dateTime), "h:mm a")} to{" "}
                       {format(
                         new Date(
-                          new Date(currentEvent.date).getTime() + 2 * 60 * 60 * 1000
+                          new Date(currentEvent.dateTime).getTime() + 2 * 60 * 60 * 1000
                         ),
                         "h:mm a"
                       )}

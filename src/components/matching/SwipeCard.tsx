@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Event } from "@/types";
@@ -79,7 +80,6 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
         dragConstraints={dragConstraints}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
-        style={{ x }}
       >
         <motion.div
           className="absolute left-4 top-4 z-10 rounded-full bg-red-500 p-2 text-white"
@@ -122,7 +122,7 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
           <CardFooter className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="w-4 h-4" />
-              {format(new Date(event.date), "MMM d, yyyy")}
+              {format(new Date(event.dateTime), "MMM d, yyyy")}
             </div>
             <Button
               variant="outline"
