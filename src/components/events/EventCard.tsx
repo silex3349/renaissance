@@ -2,8 +2,11 @@
 import { Event } from "@/types";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, BookmarkPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface EventCardProps {
   event: Event;
@@ -11,6 +14,11 @@ interface EventCardProps {
 }
 
 const EventCard = ({ event, onJoin }: EventCardProps) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
+  
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       weekday: 'short',
@@ -28,9 +36,38 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
   const isFullyBooked = event.maxAttendees 
     ? event.attendees.length >= event.maxAttendees 
     : false;
+    
+  const handleJoin = () => {
+    if (onJoin) {
+      setIsJoining(true);
+      // Simulate API delay
+      setTimeout(() => {
+        onJoin(event.id);
+        setIsJoining(false);
+      }, 500);
+    }
+  };
+  
+  const toggleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsBookmarked(!isBookmarked);
+    toast({
+      title: isBookmarked ? "Event removed" : "Event bookmarked",
+      description: isBookmarked 
+        ? "Event removed from your bookmarks" 
+        : "Event added to your bookmarks",
+    });
+  };
+  
+  const goToEventDetails = () => {
+    navigate(`/events/${event.id}`);
+  };
 
   return (
-    <Card className="event-card h-full flex flex-col">
+    <Card 
+      className="event-card h-full flex flex-col transition-all duration-200 hover:shadow-md cursor-pointer"
+      onClick={goToEventDetails}
+    >
       <div 
         className="h-40 w-full bg-cover bg-center relative"
         style={{ 
@@ -40,6 +77,16 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute top-3 right-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 hover:text-white"
+            onClick={toggleBookmark}
+          >
+            <BookmarkPlus className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
         <div className="absolute bottom-3 left-3 right-3">
           <div className="flex gap-2 text-white text-sm">
             {event.interests.slice(0, 2).map(interest => (
@@ -74,7 +121,7 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
           
           <div className="flex items-start gap-2 text-sm">
             <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-            <div>{event.address}</div>
+            <div>{event.address || (event.location.city ? event.location.city : "Unknown location")}</div>
           </div>
           
           <div className="flex items-start gap-2 text-sm">
@@ -89,11 +136,14 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
       
       <CardFooter>
         <Button
-          onClick={() => onJoin && onJoin(event.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleJoin();
+          }}
           className="w-full"
-          disabled={isFullyBooked}
+          disabled={isFullyBooked || isJoining}
         >
-          {isFullyBooked ? "Fully Booked" : "Join Event"}
+          {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join Event"}
         </Button>
       </CardFooter>
     </Card>

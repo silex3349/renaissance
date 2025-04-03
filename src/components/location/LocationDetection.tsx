@@ -2,13 +2,20 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, Loader2 } from "lucide-react";
 
-const LocationDetection = ({ onComplete }: { onComplete?: () => void }) => {
-  const { updateUserLocation } = useAuth();
+const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: () => void, autoDetect?: boolean }) => {
+  const { updateUserLocation, user } = useAuth();
   const { toast } = useToast();
   const [isDetecting, setIsDetecting] = useState(false);
+
+  // Auto-detect location when component mounts if autoDetect is true
+  useEffect(() => {
+    if (autoDetect && !user?.location) {
+      detectLocation();
+    }
+  }, [autoDetect, user]);
 
   const detectLocation = () => {
     setIsDetecting(true);
@@ -48,7 +55,8 @@ const LocationDetection = ({ onComplete }: { onComplete?: () => void }) => {
           variant: "destructive",
         });
         setIsDetecting(false);
-      }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
 
@@ -77,7 +85,14 @@ const LocationDetection = ({ onComplete }: { onComplete?: () => void }) => {
           disabled={isDetecting}
           className="w-full"
         >
-          {isDetecting ? "Detecting Location..." : "Detect My Location"}
+          {isDetecting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Detecting Location...
+            </>
+          ) : (
+            "Detect My Location"
+          )}
         </Button>
         
         {onComplete && (

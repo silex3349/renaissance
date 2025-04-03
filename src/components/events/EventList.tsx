@@ -4,6 +4,8 @@ import EventCard from "./EventCard";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface EventListProps {
   events: Event[];
@@ -11,8 +13,8 @@ interface EventListProps {
   description?: string;
 }
 
-const EventList = ({ events, title = "Upcoming Events", description }: EventListProps) => {
-  const { user } = useAuth();
+const EventList = ({ events, title = "Events", description }: EventListProps) => {
+  const { user, joinEvent } = useAuth();
   const { toast } = useToast();
   const [joiningEvent, setJoiningEvent] = useState<string | null>(null);
 
@@ -28,14 +30,16 @@ const EventList = ({ events, title = "Upcoming Events", description }: EventList
 
     setJoiningEvent(eventId);
     
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Event joined!",
-        description: "You have successfully joined this event.",
-      });
-      setJoiningEvent(null);
-    }, 1000);
+    // Join the event
+    joinEvent(eventId);
+    
+    // Show success toast
+    toast({
+      title: "Event joined!",
+      description: "You have successfully joined this event.",
+    });
+    
+    setJoiningEvent(null);
   };
 
   if (events.length === 0) {
@@ -50,7 +54,17 @@ const EventList = ({ events, title = "Upcoming Events", description }: EventList
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h3 className="text-2xl font-medium">{title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-2xl font-medium">{title}</h3>
+          
+          {user?.location && title === "Events Near You" && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {user.location.city || "Current location"}
+            </Badge>
+          )}
+        </div>
+        
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
       

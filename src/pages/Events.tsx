@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MOCK_EVENTS, MOCK_USERS } from "@/services/mockData";
@@ -15,6 +16,10 @@ import {
   Search,
   CalendarDays,
   Filter,
+  BookmarkPlus,
+  Share2,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -25,25 +30,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import SwipeUserCard from "@/components/matching/SwipeUserCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { Event, User as UserType } from "@/types";
 import { format } from "date-fns";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import LocationDetection from "@/components/location/LocationDetection";
 
 const Events = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, joinEvent, leaveEvent } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [attendeesVisible, setAttendeesVisible] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isReminded, setIsReminded] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [locationPromptVisible, setLocationPromptVisible] = useState(false);
 
   // If we have an ID parameter, we're on the event detail page
   // Otherwise, we show the event list
@@ -64,7 +69,9 @@ const Events = () => {
       (activeTab === "joined" &&
         user?.joinedEvents.includes(event.id)) ||
       (activeTab === "upcoming" &&
-        new Date(event.dateTime) > new Date());
+        new Date(event.dateTime) > new Date()) ||
+      (activeTab === "nearby" && 
+        user?.location && event.location.city === user?.location.city);
     return matchesSearch && matchesTab;
   });
 
@@ -84,19 +91,83 @@ const Events = () => {
 
     if (isAttending) {
       leaveEvent(currentEvent.id);
+      toast({
+        title: "Left event",
+        description: "You are no longer attending this event.",
+      });
     } else {
       joinEvent(currentEvent.id);
+      toast({
+        title: "Joined event",
+        description: "You are now attending this event!",
+      });
+    }
+  };
+
+  const toggleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+    toast({
+      title: isBookmarked ? "Event removed from bookmarks" : "Event bookmarked",
+      description: isBookmarked ? "This event has been removed from your saved events." : "This event has been added to your saved events.",
+    });
+  };
+
+  const toggleReminder = () => {
+    setIsReminded(!isReminded);
+    toast({
+      title: isReminded ? "Reminder cancelled" : "Reminder set",
+      description: isReminded 
+        ? "You will no longer receive reminders about this event." 
+        : "You will receive a reminder before this event.",
+    });
+  };
+
+  // Handle sharing the event
+  const shareEvent = () => {
+    if (navigator.share && currentEvent) {
+      navigator.share({
+        title: currentEvent.title,
+        text: `Check out this event: ${currentEvent.title}`,
+        url: window.location.href,
+      }).catch((error) => console.log('Error sharing', error));
+    } else {
+      // Fallback for browsers that don't support navigator.share
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied",
+        description: "Event link copied to clipboard!",
+      });
     }
   };
 
   // Reset attendees visibility when changing events
   useEffect(() => {
     setAttendeesVisible(false);
+    // Reset bookmarked and reminded states when event changes
+    setIsBookmarked(false);
+    setIsReminded(false);
   }, [id]);
+
+  // Check if we need to prompt for location
+  useEffect(() => {
+    if (activeTab === "nearby" && !user?.location) {
+      setLocationPromptVisible(true);
+    } else {
+      setLocationPromptVisible(false);
+    }
+  }, [activeTab, user?.location]);
+
+  const handleLocationDetected = () => {
+    setLocationPromptVisible(false);
+  };
 
   return (
     <div className="renaissance-container py-8">
-      {isDetailView && currentEvent ? (
+      {locationPromptVisible ? (
+        <div className="max-w-lg mx-auto">
+          <LocationDetection onComplete={handleLocationDetected} />
+        </div>
+      ) : isDetailView && currentEvent ? (
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <Button
@@ -183,14 +254,42 @@ const Events = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  variant={isAttending ? "destructive" : "default"}
-                  onClick={toggleAttendance}
-                >
-                  {isAttending ? "Leave Event" : "Join Event"}
-                </Button>
+              <CardFooter className="flex flex-col gap-4">
+                <div className="flex w-full gap-2">
+                  <Button
+                    className="flex-1"
+                    variant={isAttending ? "destructive" : "default"}
+                    onClick={toggleAttendance}
+                  >
+                    {isAttending ? "Leave Event" : "Join Event"}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={toggleBookmark}
+                    className={isBookmarked ? "text-primary" : ""}
+                  >
+                    <BookmarkPlus className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={toggleReminder}
+                    className={isReminded ? "text-primary" : ""}
+                  >
+                    {isReminded ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={shareEvent}
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
 
@@ -215,7 +314,9 @@ const Events = () => {
                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
                           >
                             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Users className="h-4 w-4 text-primary" />
+                              <span className="text-primary font-medium">
+                                {attendee.email[0].toUpperCase()}
+                              </span>
                             </div>
                             <div>
                               <p className="text-sm font-medium">Anonymous User</p>
@@ -295,14 +396,23 @@ const Events = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="all">All Events</TabsTrigger>
+            <TabsList className="grid grid-cols-4 mb-4">
+              <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="joined">Joined</TabsTrigger>
               <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="nearby">Nearby</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="space-y-4">
-              <EventList events={filteredEvents} />
+              <EventList 
+                events={filteredEvents} 
+                title={
+                  activeTab === "all" ? "All Events" :
+                  activeTab === "joined" ? "Your Events" :
+                  activeTab === "upcoming" ? "Upcoming Events" :
+                  "Events Near You"
+                }
+              />
             </TabsContent>
           </Tabs>
         </div>

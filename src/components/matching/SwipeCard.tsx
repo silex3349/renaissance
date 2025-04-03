@@ -1,14 +1,15 @@
 
-import React, { useState } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { Event } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Calendar, MapPin, Users } from "lucide-react";
+import { Check, X, Calendar, MapPin, Users, Clock, Heart, BookmarkPlus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 // Swipe threshold - if surpassed, it's considered a full swipe
 const SWIPE_THRESHOLD = 100;
@@ -22,6 +23,7 @@ interface SwipeCardProps {
 const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
   const [swipedDirection, setSwipedDirection] = useState<"left" | "right" | null>(null);
   const x = useMotionValue(0);
+  const { toast } = useToast();
 
   // Determine background color based on swipe direction
   const background = useTransform(
@@ -37,11 +39,25 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
     [1, 0, 1]
   );
 
+  // Determine rotation based on swipe distance
+  const rotate = useTransform(
+    x,
+    [-SWIPE_THRESHOLD * 2, 0, SWIPE_THRESHOLD * 2],
+    [-15, 0, 15]
+  );
+
   const { user } = useAuth();
 
   const handleSwipe = (direction: "left" | "right") => {
     setSwipedDirection(direction);
     onSwipe(direction, event);
+    
+    if (direction === "right") {
+      toast({
+        title: "Event bookmarked!",
+        description: "You can view this event in your saved events.",
+      });
+    }
   };
 
   const dragConstraints = { left: -200, right: 200 };
@@ -75,27 +91,27 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
     >
       <motion.div
         className="relative h-full w-full"
-        style={{ background }}
+        style={{ background, rotate }}
         drag="x"
         dragConstraints={dragConstraints}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
         <motion.div
-          className="absolute left-4 top-4 z-10 rounded-full bg-red-500 p-2 text-white"
+          className="absolute left-4 top-4 z-10 rounded-full bg-red-500 p-2 text-white shadow-lg"
           style={{ opacity }}
         >
           <X className="h-6 w-6" />
         </motion.div>
         <motion.div
-          className="absolute right-4 top-4 z-10 rounded-full bg-green-500 p-2 text-white"
+          className="absolute right-4 top-4 z-10 rounded-full bg-green-500 p-2 text-white shadow-lg"
           style={{ opacity }}
         >
           <Check className="h-6 w-6" />
         </motion.div>
 
-        <Card className="h-full w-full">
-          <CardContent className="aspect-video relative rounded-md overflow-hidden bg-muted">
+        <Card className="h-full w-full overflow-hidden">
+          <CardContent className="aspect-video relative rounded-md overflow-hidden bg-muted p-0">
             {event.imageUrl ? (
               <img
                 src={event.imageUrl}
@@ -107,40 +123,71 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
                 <Calendar className="h-12 w-12 opacity-20" />
               </div>
             )}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+              <div className="flex flex-wrap gap-1 mb-2">
+                {event.interests.slice(0, 3).map((interest) => (
+                  <Badge key={interest.id} variant="outline" className="bg-black/30 text-white border-none">
+                    {interest.name}
+                  </Badge>
+                ))}
+                {event.interests.length > 3 && (
+                  <Badge variant="outline" className="bg-black/30 text-white border-none">
+                    +{event.interests.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            </div>
           </CardContent>
           <div className="p-4">
             <h2 className="text-lg font-semibold">{event.title}</h2>
             <p className="text-sm text-muted-foreground">
               {event.address || (event.location.city ? event.location.city : "Unknown location")}
             </p>
-            <div className="mt-2 flex flex-wrap gap-1">
-              {event.interests.map((interest) => (
-                <Badge key={interest.id} variant="secondary">
-                  {interest.name}
-                </Badge>
-              ))}
+            
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                {format(new Date(event.dateTime), "MMM d, yyyy")}
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                {format(new Date(event.dateTime), "h:mm a")}
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                {event.attendees.length} attending
+              </div>
             </div>
           </div>
           <CardFooter className="flex justify-between items-center">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              {format(new Date(event.dateTime), "MMM d, yyyy")}
-            </div>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full" 
+              onClick={() => handleSwipe("left")}
+            >
+              <X className="h-5 w-5 text-red-500" />
+            </Button>
+            
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
-                if (swipedDirection === "right") {
-                  // User swiped right, navigate to event details
-                  window.open(`/events/${event.id}`, "_blank");
-                } else {
-                  // User swiped left, show a message or do nothing
-                  console.log("Swiped left, no action taken");
-                }
+                window.open(`/events/${event.id}`, "_blank");
               }}
-              disabled={swipedDirection !== "right"}
             >
-              {swipedDirection === "right" ? "View Event" : "Pass"}
+              View Details
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full" 
+              onClick={() => handleSwipe("right")}
+            >
+              <Heart className="h-5 w-5 text-green-500" />
             </Button>
           </CardFooter>
         </Card>
