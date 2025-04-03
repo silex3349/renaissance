@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MOCK_EVENTS, MOCK_USERS } from "@/services/mockData";
@@ -154,7 +153,9 @@ const Events = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{currentEvent.location}</span>
+                    <span>
+                      {currentEvent.address || (currentEvent.location.city ? currentEvent.location.city : "Unknown location")}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />

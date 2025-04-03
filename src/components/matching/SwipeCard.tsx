@@ -110,7 +110,9 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
           </CardContent>
           <div className="p-4">
             <h2 className="text-lg font-semibold">{event.title}</h2>
-            <p className="text-sm text-muted-foreground">{event.location}</p>
+            <p className="text-sm text-muted-foreground">
+              {event.address || (event.location.city ? event.location.city : "Unknown location")}
+            </p>
             <div className="mt-2 flex flex-wrap gap-1">
               {event.interests.map((interest) => (
                 <Badge key={interest.id} variant="secondary">
