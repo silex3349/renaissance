@@ -1,3 +1,4 @@
+
 import { User, Interest, Group } from "@/types";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -148,35 +149,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // In a real app, this would call your backend
     const updatedUser = {
       ...user,
-      location: { latitude, longitude },
+      location: { 
+        city: "Detected City", 
+        country: "Detected Country",
+        latitude, 
+        longitude 
+      },
     };
     
     setUser(updatedUser);
     localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
   };
 
-  const updateUserAgeRange = (ageRange: string) => {
+  const updateUserAgeRange = (ageRangeStr: string) => {
     if (!user) return;
     
-    const updatedUser = {
-      ...user,
-      ageRange,
-    };
-    
-    setUser(updatedUser);
-    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+    try {
+      // Parse the JSON string to get the age range object
+      const ageRange = JSON.parse(ageRangeStr);
+      
+      const updatedUser = {
+        ...user,
+        ageRange,
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error("Failed to parse age range:", error);
+    }
   };
 
   const joinEvent = (eventId: string) => {
     if (!user) return;
     
-    if (user.joinedEvents.includes(eventId)) {
+    if (user.joinedEvents?.includes(eventId)) {
       return; // Already joined
     }
     
     const updatedUser = {
       ...user,
-      joinedEvents: [...user.joinedEvents, eventId]
+      joinedEvents: [...(user.joinedEvents || []), eventId]
     };
     
     setUser(updatedUser);
@@ -189,7 +202,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const leaveEvent = (eventId: string) => {
-    if (!user) return;
+    if (!user || !user.joinedEvents) return;
     
     const updatedUser = {
       ...user,
@@ -208,13 +221,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const likeUser = (userId: string) => {
     if (!user) return;
     
-    if (user.matchedUsers.includes(userId)) {
+    if (user.matchedUsers?.includes(userId)) {
       return; // Already matched
     }
     
     const updatedUser = {
       ...user,
-      matchedUsers: [...user.matchedUsers, userId]
+      matchedUsers: [...(user.matchedUsers || []), userId]
     };
     
     setUser(updatedUser);
@@ -283,9 +296,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       ),
       members: [user.id],
-      events: [],
       createdAt: new Date(),
-      creator: user.id
+      creator: user.id,
+      events: [],
     };
     
     // In a real app, you would save this to the database

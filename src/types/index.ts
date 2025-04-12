@@ -8,7 +8,7 @@ export interface Interest {
 
 export interface Event {
   id: string;
-  title?: string;  // Added for compatibility with mock data
+  title?: string;
   name: string;
   description: string;
   location: {
@@ -18,7 +18,7 @@ export interface Event {
     longitude?: number;
   };
   address?: string;
-  dateTime?: Date;  // Added for compatibility with mock data
+  dateTime?: Date;
   startTime: Date;
   endTime: Date;
   groupId?: string;
@@ -46,7 +46,7 @@ export interface Group {
     latitude?: number;
     longitude?: number;
   };
-  events?: string[];  // Added for compatibility
+  events?: string[];
 }
 
 export interface User {
@@ -55,11 +55,11 @@ export interface User {
   password?: string;
   interests?: Interest[];
   joinedAt?: Date;
-  createdAt?: Date;  // Added for compatibility
+  createdAt?: Date;
   location?: {
     city: string;
     country: string;
-    latitude?: number; 
+    latitude?: number;
     longitude?: number;
   };
   ageRange?: {

@@ -72,7 +72,7 @@ const GroupList = ({ groups, title }: GroupListProps) => {
                   {group.location && (
                     <div className="flex items-center">
                       <MapPin className="h-3 w-3 mr-1" />
-                      <span>{group.location}</span>
+                      <span>{group.location.city}</span>
                     </div>
                   )}
                 </div>

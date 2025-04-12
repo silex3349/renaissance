@@ -5,10 +5,12 @@ import InterestSelector from "@/components/profile/InterestSelector";
 import LocationDetection from "@/components/location/LocationDetection";
 import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
+  const { updateUserAgeRange } = useAuth();
   const totalSteps = 3;
 
   const handleNext = () => {
@@ -18,6 +20,11 @@ const Onboarding = () => {
       // Onboarding complete
       navigate("/discover");
     }
+  };
+
+  const handleAgeRangeChange = (ageRange: { min: number; max: number }) => {
+    // Store the age range in the user's profile
+    updateUserAgeRange(JSON.stringify(ageRange));
   };
 
   return (
@@ -46,7 +53,10 @@ const Onboarding = () => {
             )}
             
             {step === 2 && (
-              <AgeRangeSelector onComplete={handleNext} />
+              <AgeRangeSelector 
+                onChange={handleAgeRangeChange} 
+                onComplete={handleNext} 
+              />
             )}
             
             {step === 3 && (

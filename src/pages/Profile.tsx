@@ -8,7 +8,7 @@ import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUserAgeRange } = useAuth();
 
   if (!user) {
     return (
@@ -21,6 +21,10 @@ const Profile = () => {
       </div>
     );
   }
+
+  const handleAgeRangeChange = (ageRange: { min: number; max: number }) => {
+    updateUserAgeRange(JSON.stringify(ageRange));
+  };
 
   return (
     <div className="renaissance-container py-8">
@@ -45,12 +49,12 @@ const Profile = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Joined</p>
-                  <p>{new Date(user.createdAt).toLocaleDateString()}</p>
+                  <p>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}</p>
                 </div>
                 {user.ageRange && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Age Range</p>
-                    <p>{user.ageRange}</p>
+                    <p>{user.ageRange.min} - {user.ageRange.max} years</p>
                   </div>
                 )}
                 {user.location && (
@@ -61,11 +65,11 @@ const Profile = () => {
                 )}
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Joined Events</p>
-                  <p>{user.joinedEvents.length} events</p>
+                  <p>{user.joinedEvents?.length || 0} events</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Matched Users</p>
-                  <p>{user.matchedUsers.length} matches</p>
+                  <p>{user.matchedUsers?.length || 0} matches</p>
                 </div>
               </div>
             </CardContent>
@@ -84,7 +88,10 @@ const Profile = () => {
               </TabsContent>
               
               <TabsContent value="age" className="pt-4">
-                <AgeRangeSelector />
+                <AgeRangeSelector 
+                  initialAgeRange={user.ageRange} 
+                  onChange={handleAgeRangeChange} 
+                />
               </TabsContent>
               
               <TabsContent value="location" className="pt-4">
