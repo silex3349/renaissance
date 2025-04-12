@@ -1,57 +1,67 @@
-
-import React from 'react';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
-import NotFound from "./pages/NotFound";
-import Layout from "./components/layout/Layout";
-import Home from "./pages/Home";
-import Auth from "./pages/Auth";
-import Discover from "./pages/Discover";
-import Profile from "./pages/Profile";
-import Events from "./pages/Events";
-import Groups from "./pages/Groups";
-import Matching from "./pages/Matching";
+import Layout from "@/components/layout/Layout";
+import Home from "@/pages/Home";
+import Auth from "@/pages/Auth";
+import Profile from "@/pages/Profile";
+import Events from "@/pages/Events";
+import Groups from "@/pages/Groups";
+import Discover from "@/pages/Discover";
+import Matching from "@/pages/Matching";
+import Chats from "@/pages/Chats"; // Add this import
+import NotFound from "@/pages/NotFound";
+import "./App.css";
 
-// Create a client for React Query
+// Create a react-query client
 const queryClient = new QueryClient();
 
-const App = () => {
-  return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <NotificationProvider>
-            <AuthProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/" element={<Layout />}>
-                    <Route index element={<Home />} />
-                    <Route path="discover" element={<Discover />} />
-                    <Route path="events" element={<Events />} />
-                    <Route path="events/:id" element={<Events />} />
-                    <Route path="groups" element={<Groups />} />
-                    <Route path="groups/:id" element={<Groups />} />
-                    <Route path="matching" element={<Matching />} />
-                    <Route path="profile" element={<Profile />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
-                  <Route path="/signin" element={<Auth />} />
-                  <Route path="/signup" element={<Auth />} />
-                </Routes>
-              </TooltipProvider>
-            </AuthProvider>
-          </NotificationProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </React.StrictMode>
-  );
+// Route guard for protected routes
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Auth />;
+  }
+
+  return <>{children}</>;
 };
+
+function App() {
+  return (
+    <Router>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NotificationProvider>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="auth" element={<Auth />} />
+                <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
+                <Route path="matching" element={<ProtectedRoute><Matching /></ProtectedRoute>} />
+                <Route path="matching/:id" element={<ProtectedRoute><Matching /></ProtectedRoute>} />
+                <Route path="events" element={<Events />} />
+                <Route path="events/:id" element={<Events />} />
+                <Route path="groups" element={<Groups />} />
+                <Route path="groups/:id" element={<Groups />} />
+                <Route path="chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+            <Toaster />
+          </NotificationProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </Router>
+  );
+}
 
 export default App;

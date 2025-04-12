@@ -1,90 +1,49 @@
-
-export type User = {
-  id: string;
-  email: string;
-  interests: Interest[];
-  ageRange?: string;
-  location?: GeoLocation;
-  joinedEvents: string[];
-  matchedUsers: string[];
-  joinedGroups?: string[];
-  createdAt: Date;
-};
-
-export type Interest = {
+export interface Interest {
   id: string;
   name: string;
-  icon?: string;
-  category: string;
-};
+}
 
-export type GeoLocation = {
-  latitude: number;
-  longitude: number;
-  city?: string;
-  country?: string;
-};
-
-export type Event = {
+export interface Event {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  interests: Interest[];
-  location: GeoLocation;
-  address: string;
-  dateTime: Date;
-  organizer: string;
-  attendees: string[];
-  imageUrl?: string;
-  maxAttendees?: number;
+  location: string;
+  startTime: Date;
+  endTime: Date;
   groupId?: string;
-};
+  creator: string;
+  attendees: string[];
+  interests: Interest[];
+  createdAt: Date;
+}
 
-export type Group = {
+export interface Group {
   id: string;
   name: string;
   description: string;
-  interests: Interest[];
+  creator: string;
   members: string[];
-  events: string[];
+  interests: Interest[];
   isPrivate: boolean;
   createdAt: Date;
-  creator: string;
-};
+  location?: string; // Add location property
+}
 
-export type Match = {
+export interface User {
   id: string;
-  users: [string, string];
-  commonInterests: string[];
-  status: "pending" | "accepted" | "declined";
-  createdAt: Date;
-};
-
-export type NotificationType = 
-  | "groupInvite" 
-  | "joinRequest" 
-  | "eventReminder" 
-  | "newMessage" 
-  | "eventCreated"
-  | "matchSuccess"
-  | "joinedGroup";
-
-export type Notification = {
-  id: string;
-  type: NotificationType;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  actionUrl?: string;
-  avatar?: string;
-  data?: Record<string, any>;
-};
-
-export type ChatMessage = {
-  id: string;
-  groupId?: string;
-  senderId: string;
-  text: string;
-  timestamp: Date;
-  read: boolean;
-};
+  email: string;
+  password?: string;
+  interests?: Interest[];
+  joinedAt?: Date;
+  location?: {
+    city: string;
+    country: string;
+  };
+  ageRange?: {
+    min: number;
+    max: number;
+  };
+  name?: string;      // Add name property
+  avatar?: string;    // Add avatar property
+  bio?: string;       // Add bio property
+}
