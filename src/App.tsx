@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,7 +13,7 @@ import Events from "@/pages/Events";
 import Groups from "@/pages/Groups";
 import Discover from "@/pages/Discover";
 import Matching from "@/pages/Matching";
-import Chats from "@/pages/Chats"; // Add this import
+import Chats from "@/pages/Chats";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -38,8 +39,8 @@ function App() {
   return (
     <Router>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <NotificationProvider>
+        <NotificationProvider>
+          <AuthProvider>
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
@@ -57,8 +58,8 @@ function App() {
               </Route>
             </Routes>
             <Toaster />
-          </NotificationProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </NotificationProvider>
       </QueryClientProvider>
     </Router>
   );

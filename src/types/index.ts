@@ -1,3 +1,4 @@
+
 export interface Interest {
   id: string;
   name: string;
@@ -26,7 +27,7 @@ export interface Group {
   interests: Interest[];
   isPrivate: boolean;
   createdAt: Date;
-  location?: string; // Add location property
+  location?: string;
 }
 
 export interface User {
@@ -43,7 +44,20 @@ export interface User {
     min: number;
     max: number;
   };
-  name?: string;      // Add name property
-  avatar?: string;    // Add avatar property
-  bio?: string;       // Add bio property
+  name?: string;
+  avatar?: string;
+  bio?: string;
+  joinedEvents?: string[];
+  matchedUsers?: string[];
+  joinedGroups?: string[];
+}
+
+export interface Notification {
+  id: string;
+  type: 'groupInvite' | 'eventReminder' | 'newMessage' | 'joinRequest' | 'joinedGroup' | 'other';
+  message: string;
+  actionUrl?: string;
+  timestamp: Date;
+  read: boolean;
+  avatar?: string;
 }
