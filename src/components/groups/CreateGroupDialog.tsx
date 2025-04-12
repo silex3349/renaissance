@@ -128,12 +128,13 @@ const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps) => {
                 <FormItem>
                   <FormLabel>Interests</FormLabel>
                   <FormControl>
-                    <InterestSelector
-                      selectedInterests={field.value}
-                      onInterestsChange={field.onChange}
-                      availableInterests={INTERESTS}
-                      className="max-h-[200px] overflow-y-auto"
-                    />
+                    <div className="max-h-[200px] overflow-y-auto">
+                      <InterestSelector
+                        selectedInterests={field.value}
+                        onInterestsChange={field.onChange}
+                        availableInterests={INTERESTS}
+                      />
+                    </div>
                   </FormControl>
                   <FormDescription>
                     Select interests relevant to your group

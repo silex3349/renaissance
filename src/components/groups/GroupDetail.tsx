@@ -1,41 +1,18 @@
 
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { User, Group, Event } from "@/types";
-import { useAuth } from "@/contexts/AuthContext";
-import { MOCK_EVENTS } from "@/services/mockData";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
+import { Group, User, Event } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import EventList from "@/components/events/EventList";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CalendarDays, Lock, MessageSquare, Users } from "lucide-react";
+import { MOCK_EVENTS } from "@/services/mockData";
 import GroupChat from "@/components/chat/GroupChat";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Users,
-  Calendar,
-  MessageSquare,
-  Settings,
-  UserPlus,
-  LogOut,
-  ChevronLeft,
-  MoreVertical,
-} from "lucide-react";
+import EventCard from "@/components/events/EventCard";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 interface GroupDetailProps {
   group: Group;
@@ -43,225 +20,209 @@ interface GroupDetailProps {
 }
 
 const GroupDetail = ({ group, members }: GroupDetailProps) => {
-  const { user, joinGroup, leaveGroup } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("members");
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const { user } = useAuth();
+  const { addNotification } = useNotifications();
+  const [activeTab, setActiveTab] = useState("about");
+  const [message, setMessage] = useState("");
 
-  const isAdmin = user?.id === group.creator;
-  const isMember = user?.id && group.members.includes(user.id);
-  
-  // Get group events
-  const groupEvents = MOCK_EVENTS.filter((event) => 
-    group.events.includes(event.id)
+  // Get the events for this group
+  const groupEvents = MOCK_EVENTS.filter(
+    (event) => event.groupId === group.id
   );
 
+  const isUserMember = user ? group.members.includes(user.id) : false;
+  const isCreator = user ? group.creator === user.id : false;
+
   const handleJoinGroup = () => {
-    if (!user) {
-      navigate("/signin");
-      return;
-    }
+    if (!user) return;
 
-    if (!isMember) {
-      joinGroup(group.id);
-      toast({
-        title: "Request sent",
-        description: group.isPrivate 
-          ? "Your request to join this group has been sent to the admin." 
-          : "You have successfully joined this group.",
+    // If the group is private, send a join request
+    if (group.isPrivate) {
+      addNotification({
+        type: "joinRequest",
+        message: `You requested to join ${group.name}. Waiting for approval.`,
+        actionUrl: `/groups/${group.id}`,
+      });
+
+      // Notify the group creator
+      addNotification({
+        type: "joinRequest",
+        message: `${user.email} requested to join your group ${group.name}`,
+        actionUrl: `/groups/${group.id}`,
+      });
+    } else {
+      // If the group is public, join immediately
+      addNotification({
+        type: "joinedGroup",
+        message: `You have joined ${group.name}`,
+        actionUrl: `/groups/${group.id}`,
       });
     }
   };
 
-  const handleLeaveGroup = () => {
-    if (isMember) {
-      leaveGroup(group.id);
-      toast({
-        title: "Left group",
-        description: "You have left this group successfully.",
-      });
-    }
+  const handleInviteMember = () => {
+    if (!user) return;
+
+    // In a real app, this would open a dialog to select users
+    // For this demo, we'll just show a notification
+    addNotification({
+      type: "groupInvite",
+      message: `You invited a friend to join ${group.name}`,
+      actionUrl: `/groups/${group.id}`,
+    });
   };
 
-  const handleInviteSend = () => {
-    setShowInviteDialog(false);
-    toast({
-      title: "Invitations sent",
-      description: "Your invitations have been sent successfully.",
+  // Helper function to format the date
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mr-2"
-          onClick={() => navigate("/groups")}
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-3xl font-bold flex-1">{group.name}</h1>
-        
-        {isMember && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isAdmin && (
-                <DropdownMenuItem>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Group Settings
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={handleLeaveGroup}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Leave Group
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-        
-        {!isMember && (
-          <Button onClick={handleJoinGroup}>
-            {group.isPrivate ? "Request to Join" : "Join Group"}
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">{group.name}</h1>
+            {group.isPrivate && (
+              <Lock className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+          <p className="text-muted-foreground">
+            Created {formatDate(group.createdAt)}
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          {!isUserMember && (
+            <Button onClick={handleJoinGroup}>
+              {group.isPrivate ? "Request to Join" : "Join Group"}
+            </Button>
+          )}
+          {isUserMember && !isCreator && (
+            <Button variant="outline" onClick={() => {}}>
+              Leave Group
+            </Button>
+          )}
+          {isUserMember && (
+            <Button variant="outline" onClick={handleInviteMember}>
+              Invite Member
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => navigate("/groups")}
+          >
+            Back to Groups
           </Button>
-        )}
-        
-        {isMember && (
-          <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-            <DialogTrigger asChild>
-              <Button className="ml-2" variant="outline">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Invite
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Invite Friends to Join</DialogTitle>
-                <DialogDescription>
-                  Invite your friends to join this group.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Share this link with your friends:
-                </p>
-                <div className="flex">
-                  <Input
-                    value={`${window.location.origin}/groups/${group.id}`}
-                    readOnly
-                    className="flex-1"
-                  />
-                  <Button
-                    className="ml-2"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/groups/${group.id}`);
-                      toast({
-                        title: "Link copied",
-                        description: "Group invitation link copied to clipboard",
-                      });
-                    }}
-                  >
-                    Copy
-                  </Button>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleInviteSend}>Send Invitations</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-
-      <div className="bg-muted/50 p-6 rounded-lg">
-        <p className="mb-4">{group.description}</p>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {group.interests.map((interest) => (
-            <Badge key={interest.id} variant="secondary">
-              {interest.name}
-            </Badge>
-          ))}
-        </div>
-        <div className="flex items-center text-sm text-muted-foreground">
-          <Users className="h-4 w-4 mr-1" />
-          <span>{group.members.length} members</span>
         </div>
       </div>
 
-      {isMember ? (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-4">
-            <TabsTrigger value="members">
-              <Users className="h-4 w-4 mr-2" />
-              Members
-            </TabsTrigger>
-            <TabsTrigger value="events">
-              <Calendar className="h-4 w-4 mr-2" />
-              Events
-            </TabsTrigger>
-            <TabsTrigger value="chat">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Chat
-            </TabsTrigger>
-          </TabsList>
+      <Tabs 
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="about">About</TabsTrigger>
+          <TabsTrigger value="members">
+            Members ({members.length})
+          </TabsTrigger>
+          <TabsTrigger value="events">
+            Events ({groupEvents.length})
+          </TabsTrigger>
+          <TabsTrigger value="chat">Chat</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="members" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center p-4 border rounded-lg"
+        <TabsContent value="about" className="space-y-4 p-4">
+          <div>
+            <h3 className="text-xl font-semibold mb-2">Description</h3>
+            <p>{group.description}</p>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-semibold mb-2">Interests</h3>
+            <div className="flex flex-wrap gap-2">
+              {group.interests.map((interest) => (
+                <span
+                  key={interest.id}
+                  className="px-3 py-1 bg-muted rounded-full text-sm"
                 >
-                  <Avatar className="h-10 w-10 mr-3">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${member.id}`} />
-                    <AvatarFallback>
-                      {member.email.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{member.email}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {member.id === group.creator ? "Admin" : "Member"}
-                    </p>
-                  </div>
-                </div>
+                  {interest.name}
+                </span>
               ))}
             </div>
-          </TabsContent>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="events" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Group Events</h2>
-              <Button>
-                <Calendar className="h-4 w-4 mr-2" />
-                Create Event
+        <TabsContent value="members" className="space-y-4 p-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {members.map((member) => (
+              <Card key={member.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-4">
+                    <Avatar>
+                      <AvatarFallback>
+                        {member.email.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{member.email}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {member.location?.city || "No location set"}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="events" className="space-y-4 p-4">
+          {groupEvents.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {groupEvents.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-medium">No events yet</h3>
+              <p className="text-muted-foreground">
+                This group doesn't have any scheduled events.
+              </p>
+              {isUserMember && (
+                <Button className="mt-4">Create Event</Button>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="chat" className="p-4">
+          {isUserMember ? (
+            <GroupChat groupId={group.id} />
+          ) : (
+            <div className="text-center py-8">
+              <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-medium">
+                Join to access chat
+              </h3>
+              <p className="text-muted-foreground">
+                You need to be a member to participate in group chats.
+              </p>
+              <Button className="mt-4" onClick={handleJoinGroup}>
+                {group.isPrivate ? "Request to Join" : "Join Group"}
               </Button>
             </div>
-            <EventList events={groupEvents} title="" />
-          </TabsContent>
-
-          <TabsContent value="chat" className="space-y-4">
-            <GroupChat groupId={group.id} />
-          </TabsContent>
-        </Tabs>
-      ) : (
-        <div className="bg-muted p-6 rounded-lg text-center">
-          <h3 className="text-lg font-medium mb-2">Private Group</h3>
-          <p className="text-muted-foreground mb-4">
-            Join this group to view members, events, and participate in discussions.
-          </p>
-          <Button onClick={handleJoinGroup}>
-            {group.isPrivate ? "Request to Join" : "Join Group"}
-          </Button>
-        </div>
-      )}
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

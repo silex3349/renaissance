@@ -123,6 +123,19 @@ export const INTERESTS: Interest[] = [
   },
 ];
 
+export const INTEREST_CATEGORIES: string[] = [
+  "Arts",
+  "Adventure",
+  "Outdoors",
+  "Professional",
+  "Education",
+  "Food",
+  "Fitness",
+  "Wellness",
+  "Lifestyle",
+  "Entertainment"
+];
+
 export const MOCK_USERS: User[] = [
   {
     id: "user_1",
@@ -357,7 +370,6 @@ export const MOCK_GROUPS = [
   }
 ];
 
-// Update event objects to include groupId where applicable
 export const MOCK_EVENTS = [
   {
     id: "event_1",

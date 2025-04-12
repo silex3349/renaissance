@@ -1,4 +1,3 @@
-
 import { Interest } from "@/types";
 import { useState, useEffect } from "react";
 import { INTERESTS, INTEREST_CATEGORIES } from "@/services/mockData";
@@ -8,42 +7,68 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const InterestSelector = ({ onComplete }: { onComplete?: () => void }) => {
+interface InterestSelectorProps {
+  onComplete?: () => void;
+  selectedInterests?: string[];
+  onInterestsChange?: (interests: string[]) => void;
+  availableInterests?: Interest[];
+  className?: string;
+}
+
+const InterestSelector = ({ 
+  onComplete,
+  selectedInterests: externalSelectedInterests,
+  onInterestsChange,
+  availableInterests = INTERESTS,
+  className
+}: InterestSelectorProps) => {
   const { user, updateUserInterests } = useAuth();
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(externalSelectedInterests || []);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | "all">("all");
 
   useEffect(() => {
-    // Initialize with user's existing interests if any
-    if (user?.interests && user.interests.length > 0) {
+    if (!externalSelectedInterests && user?.interests && user.interests.length > 0) {
       setSelectedInterests(user.interests.map(interest => interest.id));
     }
-  }, [user]);
+  }, [user, externalSelectedInterests]);
+
+  useEffect(() => {
+    if (externalSelectedInterests) {
+      setSelectedInterests(externalSelectedInterests);
+    }
+  }, [externalSelectedInterests]);
 
   const handleInterestToggle = (interestId: string) => {
-    setSelectedInterests(prev => {
-      if (prev.includes(interestId)) {
-        return prev.filter(id => id !== interestId);
-      } else {
-        return [...prev, interestId];
-      }
-    });
+    const newSelectedInterests = selectedInterests.includes(interestId)
+      ? selectedInterests.filter(id => id !== interestId)
+      : [...selectedInterests, interestId];
+    
+    setSelectedInterests(newSelectedInterests);
+    
+    if (onInterestsChange) {
+      onInterestsChange(newSelectedInterests);
+    }
   };
 
-  const filteredInterests = INTERESTS.filter(interest => {
+  const filteredInterests = availableInterests.filter(interest => {
     const matchesSearch = interest.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === "all" || interest.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
   const handleSave = () => {
-    updateUserInterests(selectedInterests);
+    if (onInterestsChange) {
+      onInterestsChange(selectedInterests);
+    } else {
+      updateUserInterests(selectedInterests);
+    }
+    
     if (onComplete) onComplete();
   };
 
   return (
-    <div className="space-y-6 py-4 animate-fade-in">
+    <div className={cn("space-y-6 py-4 animate-fade-in", className)}>
       <div className="space-y-2">
         <h3 className="text-xl font-medium">Select Your Interests</h3>
         <p className="text-muted-foreground">
@@ -109,7 +134,7 @@ const InterestSelector = ({ onComplete }: { onComplete?: () => void }) => {
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Selected {selectedInterests.length} of {INTERESTS.length} interests
+        Selected {selectedInterests.length} of {availableInterests.length} interests
       </div>
 
       <Button 
