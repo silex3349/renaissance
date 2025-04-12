@@ -26,6 +26,12 @@ const SwipeUserCard = ({ user, onSwipe, isActive }: SwipeUserCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
 
+  // Safely access user properties with null checks
+  const userInitial = user && user.email ? user.email[0].toUpperCase() : "?";
+  const userInterests = user && user.interests ? user.interests : [];
+  const userAgeRange = user && user.ageRange ? `${user.ageRange.min}-${user.ageRange.max}` : "Not specified";
+  const userLocation = user && user.location && user.location.city ? user.location.city : "Unknown location";
+
   const handleDragEnd = (
     _: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
@@ -88,7 +94,7 @@ const SwipeUserCard = ({ user, onSwipe, isActive }: SwipeUserCardProps) => {
         <div className="p-8 flex flex-col items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 h-2/5">
           <div className="h-24 w-24 bg-primary/30 rounded-full flex items-center justify-center mb-4">
             <span className="text-4xl text-primary">
-              {user.email[0].toUpperCase()}
+              {userInitial}
             </span>
           </div>
         </div>
@@ -99,7 +105,7 @@ const SwipeUserCard = ({ user, onSwipe, isActive }: SwipeUserCardProps) => {
           
           {/* Interest tags */}
           <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {user.interests.map(interest => (
+            {userInterests.map(interest => (
               <span 
                 key={interest.id}
                 className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
@@ -107,19 +113,18 @@ const SwipeUserCard = ({ user, onSwipe, isActive }: SwipeUserCardProps) => {
                 {interest.name}
               </span>
             ))}
+            {userInterests.length === 0 && (
+              <span className="text-muted-foreground text-sm">No interests specified</span>
+            )}
           </div>
           
-          {user.ageRange && (
-            <div className="text-center text-muted-foreground mb-2">
-              Age range: {user.ageRange}
-            </div>
-          )}
+          <div className="text-center text-muted-foreground mb-2">
+            Age range: {userAgeRange}
+          </div>
           
-          {user.location && user.location.city && (
-            <div className="text-center text-muted-foreground mb-4">
-              Location: {user.location.city}
-            </div>
-          )}
+          <div className="text-center text-muted-foreground mb-4">
+            Location: {userLocation}
+          </div>
           
           <div className="mt-auto text-center text-muted-foreground">
             <p>Swipe right to connect, left to pass</p>

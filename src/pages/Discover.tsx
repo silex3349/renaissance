@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import SwipeUserCard from "@/components/matching/SwipeUserCard";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { User } from "@/types";
 
 // Temporary mock implementation of getAllUsers until the real API is available
-const getAllUsers = async () => {
+const getAllUsers = async (): Promise<User[]> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 800));
   
@@ -54,7 +54,7 @@ const getAllUsers = async () => {
 
 const Discover = () => {
   const { user } = useAuth();
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [errorUsers, setErrorUsers] = useState<Error | null>(null);
   const [displayedUserIds, setDisplayedUserIds] = useState<string[]>([]);
@@ -81,42 +81,16 @@ const Discover = () => {
     fetchUsers();
   }, [user, displayedUserIds]);
 
-  const handleSwipe = (userId: string, direction: "left" | "right") => {
-    setDisplayedUserIds((prev) => [...prev, userId]);
-    setFilteredUsers((prev) => prev.filter((u) => u.id !== userId));
+  const handleSwipe = (direction: "left" | "right", swipedUser: User) => {
+    setDisplayedUserIds((prev) => [...prev, swipedUser.id]);
+    setFilteredUsers((prev) => prev.filter((u) => u.id !== swipedUser.id));
 
     // Log the swipe (for demo purposes)
-    console.log(`Swiped ${direction} on user ${userId}`);
+    console.log(`Swiped ${direction} on user ${swipedUser.id}`);
   };
 
   const handleReload = () => {
     setDisplayedUserIds([]);
-  };
-
-  const renderUserCards = () => {
-    return filteredUsers.map((user) => {
-      // Extract display name from email if name is not available
-      const displayName = user.name || user.email.split('@')[0];
-      
-      // Use avatar if available, otherwise generate one
-      const avatarUrl = user.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.id}`;
-      
-      // Use bio if available, otherwise use a placeholder
-      const userBio = user.bio || "No bio available";
-      
-      return (
-        <SwipeUserCard
-          key={user.id}
-          userId={user.id}
-          name={displayName}
-          avatar={avatarUrl}
-          bio={userBio}
-          location={user.location?.city || "Unknown location"}
-          interests={user.interests || []}
-          onSwipe={handleSwipe}
-        />
-      );
-    });
   };
 
   return (
@@ -134,7 +108,16 @@ const Discover = () => {
             Error: {errorUsers.message}
           </div>
         ) : filteredUsers.length > 0 ? (
-          <div className="flex flex-col items-center">{renderUserCards()}</div>
+          <div className="flex flex-col items-center">
+            {filteredUsers.map((user, index) => (
+              <SwipeUserCard
+                key={user.id}
+                user={user}
+                onSwipe={handleSwipe}
+                isActive={index === 0}
+              />
+            ))}
+          </div>
         ) : (
           <div className="text-center text-white">
             <p>No more profiles to display.</p>
