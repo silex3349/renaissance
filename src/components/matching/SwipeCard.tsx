@@ -1,14 +1,13 @@
 
-import React, { useState, useEffect } from "react";
-import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Event } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Calendar, MapPin, Users, Clock, Heart, BookmarkPlus } from "lucide-react";
+import { Check, X, Calendar, MapPin, Users, Clock, Heart } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 // Swipe threshold - if surpassed, it's considered a full swipe
@@ -46,8 +45,6 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
     [-15, 0, 15]
   );
 
-  const { user } = useAuth();
-
   const handleSwipe = (direction: "left" | "right") => {
     setSwipedDirection(direction);
     onSwipe(direction, event);
@@ -74,6 +71,17 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
     } else {
       x.set(0); // Reset position if swipe is not past threshold
     }
+  };
+
+  // Use the appropriate date field (dateTime or startTime)
+  const eventDate = event.dateTime || event.startTime;
+  const eventTitle = event.title || event.name;
+  
+  // Get location display
+  const getLocationDisplay = () => {
+    if (event.address) return event.address;
+    if (event.location?.city) return event.location.city;
+    return "Unknown location";
   };
 
   return (
@@ -115,7 +123,7 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
             {event.imageUrl ? (
               <img
                 src={event.imageUrl}
-                alt={event.title}
+                alt={eventTitle}
                 className="object-cover w-full h-full"
               />
             ) : (
@@ -139,20 +147,20 @@ const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
             </div>
           </CardContent>
           <div className="p-4">
-            <h2 className="text-lg font-semibold">{event.title}</h2>
+            <h2 className="text-lg font-semibold">{eventTitle}</h2>
             <p className="text-sm text-muted-foreground">
-              {event.address || (event.location.city ? event.location.city : "Unknown location")}
+              {getLocationDisplay()}
             </p>
             
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(event.dateTime), "MMM d, yyyy")}
+                {eventDate ? format(new Date(eventDate), "MMM d, yyyy") : "Date TBD"}
               </div>
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                {format(new Date(event.dateTime), "h:mm a")}
+                {eventDate ? format(new Date(eventDate), "h:mm a") : "Time TBD"}
               </div>
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

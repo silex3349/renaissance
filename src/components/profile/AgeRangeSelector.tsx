@@ -1,100 +1,59 @@
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 
-const ageRanges = [
-  "18-24",
-  "25-34",
-  "35-44",
-  "45-54",
-  "55-64",
-  "65+"
-];
+interface AgeRangeSelectorProps {
+  initialAgeRange?: { min: number; max: number };
+  onChange: (ageRange: { min: number; max: number }) => void;
+}
 
-const AgeRangeSelector = ({ onComplete }: { onComplete?: () => void }) => {
-  const { user, updateUserAgeRange } = useAuth();
-  const { toast } = useToast();
-  const [selectedRange, setSelectedRange] = useState<string>(user?.ageRange || "");
-
-  useEffect(() => {
-    if (user?.ageRange) {
-      setSelectedRange(user.ageRange);
-    }
-  }, [user]);
-
-  const handleSave = () => {
-    if (!selectedRange) {
-      toast({
-        title: "Selection required",
-        description: "Please select an age range to continue",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    updateUserAgeRange(selectedRange);
-    toast({
-      title: "Age range updated",
-      description: "Your age range has been saved successfully",
-    });
-    
-    if (onComplete) onComplete();
+const AgeRangeSelector = ({ initialAgeRange, onChange }: AgeRangeSelectorProps) => {
+  const [min, setMin] = useState(initialAgeRange?.min || 18);
+  const [max, setMax] = useState(initialAgeRange?.max || 65);
+  
+  const handleMinChange = (value: number[]) => {
+    const newMin = Math.min(value[0], max - 1);
+    setMin(newMin);
+    onChange({ min: newMin, max });
+  };
+  
+  const handleMaxChange = (value: number[]) => {
+    const newMax = Math.max(value[0], min + 1);
+    setMax(newMax);
+    onChange({ min, max: newMax });
   };
 
   return (
-    <div className="space-y-6 p-4 animate-fade-in">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-xl font-medium">Select Your Age Range</h3>
-        <p className="text-muted-foreground">
-          This information helps us recommend relevant events and activities. It won't be shown to other users.
-        </p>
-      </div>
-      
-      <RadioGroup 
-        value={selectedRange} 
-        onValueChange={setSelectedRange}
-        className="grid grid-cols-2 gap-4"
-      >
-        {ageRanges.map((range) => (
-          <div key={range} className="space-y-1">
-            <RadioGroupItem
-              value={range}
-              id={`age-${range}`}
-              className="peer sr-only"
+        <div className="flex justify-between">
+          <Label>Minimum Age: {min}</Label>
+          <Label>Maximum Age: {max}</Label>
+        </div>
+        
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <Slider
+              value={[min]}
+              min={18}
+              max={80}
+              step={1}
+              onValueChange={handleMinChange}
             />
-            <Label
-              htmlFor={`age-${range}`}
-              className="flex flex-col items-center justify-center border rounded-md p-4 
-              hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary
-              peer-data-[state=checked]:bg-primary/10"
-            >
-              {range}
-            </Label>
           </div>
-        ))}
-      </RadioGroup>
-      
-      <Button 
-        className="w-full mt-8" 
-        onClick={handleSave}
-        disabled={!selectedRange}
-      >
-        Save Age Range
-      </Button>
-      
-      {onComplete && (
-        <Button 
-          variant="ghost" 
-          className="w-full" 
-          onClick={onComplete}
-        >
-          Skip for now
-        </Button>
-      )}
+          
+          <div className="space-y-2">
+            <Slider
+              value={[max]}
+              min={19}
+              max={80}
+              step={1}
+              onValueChange={handleMaxChange}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

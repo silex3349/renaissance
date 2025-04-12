@@ -2,13 +2,23 @@
 export interface Interest {
   id: string;
   name: string;
+  category?: string;
+  icon?: string;
 }
 
 export interface Event {
   id: string;
+  title?: string;  // Added for compatibility with mock data
   name: string;
   description: string;
-  location: string;
+  location: {
+    city: string;
+    country: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  address?: string;
+  dateTime?: Date;  // Added for compatibility with mock data
   startTime: Date;
   endTime: Date;
   groupId?: string;
@@ -16,6 +26,9 @@ export interface Event {
   attendees: string[];
   interests: Interest[];
   createdAt: Date;
+  imageUrl?: string;
+  maxAttendees?: number;
+  organizer?: string;
 }
 
 export interface Group {
@@ -27,7 +40,13 @@ export interface Group {
   interests: Interest[];
   isPrivate: boolean;
   createdAt: Date;
-  location?: string;
+  location?: {
+    city: string;
+    country: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  events?: string[];  // Added for compatibility
 }
 
 export interface User {
@@ -36,9 +55,12 @@ export interface User {
   password?: string;
   interests?: Interest[];
   joinedAt?: Date;
+  createdAt?: Date;  // Added for compatibility
   location?: {
     city: string;
     country: string;
+    latitude?: number; 
+    longitude?: number;
   };
   ageRange?: {
     min: number;
