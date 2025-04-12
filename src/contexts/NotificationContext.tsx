@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Notification } from "@/types";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 interface NotificationContextType {
@@ -16,13 +15,26 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Check for user in localStorage directly
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("renaissanceUser");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUserId(parsedUser.id);
+      }
+    } catch (error) {
+      console.error("Failed to parse user data:", error);
+    }
+  }, []);
 
   // Load notifications from localStorage
   useEffect(() => {
-    if (user) {
-      const storedNotifications = localStorage.getItem(`renaissance_notifications_${user.id}`);
+    if (userId) {
+      const storedNotifications = localStorage.getItem(`renaissance_notifications_${userId}`);
       if (storedNotifications) {
         try {
           // Parse and ensure timestamps are Date objects
@@ -34,7 +46,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           setNotifications(parsedNotifications);
         } catch (error) {
           console.error("Failed to parse notifications:", error);
-          localStorage.removeItem(`renaissance_notifications_${user.id}`);
+          localStorage.removeItem(`renaissance_notifications_${userId}`);
         }
       } else {
         // Add some mock notifications for demo purposes
@@ -65,19 +77,19 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           },
         ];
         setNotifications(mockNotifications);
-        localStorage.setItem(`renaissance_notifications_${user.id}`, JSON.stringify(mockNotifications));
+        localStorage.setItem(`renaissance_notifications_${userId}`, JSON.stringify(mockNotifications));
       }
     } else {
       setNotifications([]);
     }
-  }, [user]);
+  }, [userId]);
 
   // Save notifications to localStorage when they change
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(`renaissance_notifications_${user.id}`, JSON.stringify(notifications));
+    if (userId) {
+      localStorage.setItem(`renaissance_notifications_${userId}`, JSON.stringify(notifications));
     }
-  }, [notifications, user]);
+  }, [notifications, userId]);
 
   const addNotification = (notification: Omit<Notification, "id" | "timestamp" | "read">) => {
     const newNotification: Notification = {

@@ -1,4 +1,3 @@
-
 import { User, Interest, Group } from "@/types";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";

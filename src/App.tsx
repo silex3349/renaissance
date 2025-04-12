@@ -25,8 +25,8 @@ const App = () => {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AuthProvider>
-            <NotificationProvider>
+          <NotificationProvider>
+            <AuthProvider>
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
@@ -46,8 +46,8 @@ const App = () => {
                   <Route path="/signup" element={<Auth />} />
                 </Routes>
               </TooltipProvider>
-            </NotificationProvider>
-          </AuthProvider>
+            </AuthProvider>
+          </NotificationProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </React.StrictMode>
