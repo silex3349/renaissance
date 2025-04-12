@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -6,9 +5,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import EventList from "@/components/events/EventList";
 import { MOCK_EVENTS } from "@/services/mockData";
 import { UserCheck, MessageCircle, Calendar } from "lucide-react";
+import { Event } from "@/types";
 
 const Home = () => {
   const { user } = useAuth();
+
+  // Type assertion to ensure mock data matches the Event type
+  const typedEvents = MOCK_EVENTS as Event[];
 
   return (
     <div className="min-h-screen">
@@ -16,6 +19,7 @@ const Home = () => {
         <div className="relative overflow-hidden">
           {/* Hero Section */}
           <div className="flex flex-col min-h-[calc(100vh-5rem)]">
+            {/* City Background Image */}
             <div className="flex-1 bg-gradient-to-b from-renaissance-300 to-renaissance-500 flex flex-col md:flex-row items-center relative overflow-hidden">
               {/* City Background Image */}
               <div className="absolute inset-0 opacity-20 pointer-events-none z-0">
@@ -102,7 +106,7 @@ const Home = () => {
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">
-              {MOCK_EVENTS.slice(0, 3).map((event) => (
+              {typedEvents.slice(0, 3).map((event) => (
                 <div key={event.id} className="event-card">
                   <div 
                     className="h-40 bg-cover bg-center"
@@ -160,7 +164,7 @@ const Home = () => {
             </div>
             
             <EventList 
-              events={MOCK_EVENTS.slice(0, 3)} 
+              events={typedEvents.slice(0, 3)} 
               title="Recommended for You" 
               description="Based on your interests and location"
             />

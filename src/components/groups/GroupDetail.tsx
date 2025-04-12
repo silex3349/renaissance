@@ -29,7 +29,7 @@ const GroupDetail = ({ group, members }: GroupDetailProps) => {
   // Get the events for this group
   const groupEvents = MOCK_EVENTS.filter(
     (event) => event.groupId === group.id
-  );
+  ) as Event[];
 
   const isUserMember = user ? group.members.includes(user.id) : false;
   const isCreator = user ? group.creator === user.id : false;

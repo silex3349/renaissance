@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MOCK_EVENTS } from "@/services/mockData";
 import { Event } from "@/types";
@@ -26,6 +25,9 @@ const Matching = () => {
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [filterOnlyNearby, setFilterOnlyNearby] = useState(false);
 
+  // Type assertion for mock events
+  const typedMockEvents = MOCK_EVENTS as Event[];
+
   useEffect(() => {
     // If user has location, use it for filtering events
     if (user?.location && locationDetected) {
@@ -43,7 +45,7 @@ const Matching = () => {
     setIsLoading(true);
     // Simulate API delay for filtering events
     setTimeout(() => {
-      let filteredEvents = [...MOCK_EVENTS];
+      let filteredEvents = [...typedMockEvents];
       
       // Filter by user interests if available
       if (user?.interests && user.interests.length > 0) {

@@ -1,14 +1,15 @@
 
+
 export interface Interest {
   id: string;
   name: string;
-  category?: string;
+  category: string;  // Changed from optional to required
   icon?: string;
 }
 
 export interface Event {
   id: string;
-  title?: string;
+  title: string;
   name: string;
   description: string;
   location: {
@@ -18,7 +19,7 @@ export interface Event {
     longitude?: number;
   };
   address?: string;
-  dateTime?: Date;
+  dateTime: Date;
   startTime: Date;
   endTime: Date;
   groupId?: string;
@@ -83,3 +84,4 @@ export interface Notification {
   read: boolean;
   avatar?: string;
 }
+

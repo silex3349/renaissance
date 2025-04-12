@@ -313,7 +313,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // We would also update a groups collection in a real app
     // Here we'll just add to our mock data for demo purposes
-    MOCK_GROUPS.push(newGroup);
+    MOCK_GROUPS.push(newGroup as any);
   };
 
   return (

@@ -1,8 +1,10 @@
+
 import React from "react";
 import { useParams } from "react-router-dom";
 import { MOCK_EVENTS, MOCK_USERS } from "@/services/mockData";
 import EventDetail from "@/components/events/EventDetail";
 import EventListView from "@/components/events/EventListView";
+import { Event, User } from "@/types";
 
 const Events = () => {
   const { id } = useParams();
@@ -13,12 +15,12 @@ const Events = () => {
 
   // Find the current event if we're on the detail page
   const currentEvent = isDetailView
-    ? MOCK_EVENTS.find((event) => event.id === id)
+    ? MOCK_EVENTS.find((event) => event.id === id) as Event || null
     : null;
 
   // Get attendees for the current event
   const attendees = currentEvent
-    ? MOCK_USERS.filter((user) => currentEvent.attendees.includes(user.id))
+    ? MOCK_USERS.filter((user) => currentEvent.attendees.includes(user.id)) as User[]
     : [];
 
   return (
@@ -26,7 +28,7 @@ const Events = () => {
       {isDetailView && currentEvent ? (
         <EventDetail event={currentEvent} attendees={attendees} />
       ) : (
-        <EventListView events={MOCK_EVENTS} />
+        <EventListView events={MOCK_EVENTS as Event[]} />
       )}
     </div>
   );
