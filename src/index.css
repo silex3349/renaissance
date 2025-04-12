@@ -106,4 +106,33 @@
   .renaissance-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-renaissance-500 to-renaissance-700 bg-clip-text text-transparent;
+  }
+  
+  .hero-background {
+    background-image: url('lovable-uploads/8a6794ee-5d2c-4b63-aead-f0f02b6a9ef5.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    @apply absolute inset-0 opacity-20;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulseSoft 3s infinite ease-in-out;
+  }
+  
+  @keyframes pulseSoft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
 }

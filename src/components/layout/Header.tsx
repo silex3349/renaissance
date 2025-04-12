@@ -29,6 +29,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
+  const isHomePage = location.pathname === "/";
 
   const navigationItems = [
     { name: "Home", path: "/", icon: <HomeIcon className="h-5 w-5" /> },
@@ -60,14 +61,14 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isHomePage && !user ? 'bg-transparent border-transparent' : ''}`}>
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link
             to="/"
-            className="flex items-center text-xl font-bold tracking-tighter"
+            className={`flex items-center text-xl font-bold tracking-tighter ${isHomePage && !user ? 'text-white' : ''}`}
           >
-            <span className="gradient-text">Renaissance</span>
+            <span className={isHomePage && !user ? 'text-white' : 'gradient-text'}>Renaissance</span>
           </Link>
         </div>
 
@@ -77,10 +78,12 @@ const Header = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center text-sm gap-1 transition-colors hover:text-foreground/80 ${
-                isActive(item.path)
+              className={`flex items-center text-sm gap-1 transition-colors ${
+                isHomePage && !user
+                  ? 'text-white/80 hover:text-white'
+                  : isActive(item.path)
                   ? "text-foreground font-medium"
-                  : "text-foreground/60"
+                  : "text-foreground/60 hover:text-foreground/80"
               }`}
             >
               {item.icon}
@@ -95,9 +98,9 @@ const Header = () => {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? (
-            <XIcon className="h-6 w-6" />
+            <XIcon className={`h-6 w-6 ${isHomePage && !user ? 'text-white' : ''}`} />
           ) : (
-            <MenuIcon className="h-6 w-6" />
+            <MenuIcon className={`h-6 w-6 ${isHomePage && !user ? 'text-white' : ''}`} />
           )}
         </button>
 
@@ -147,7 +150,11 @@ const Header = () => {
             </DropdownMenu>
           ) : (
             <Link to="/signin">
-              <Button variant="default" size="sm">
+              <Button 
+                variant={isHomePage ? "outline" : "default"} 
+                size="sm"
+                className={isHomePage ? "border-white text-white hover:bg-white hover:text-renaissance-600" : ""}
+              >
                 Sign In
               </Button>
             </Link>
