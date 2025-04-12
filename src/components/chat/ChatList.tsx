@@ -169,7 +169,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
         <div className="border-b">
           <TabsList className="grid grid-cols-4 bg-transparent p-0 h-10">
             <TabsTrigger 
@@ -246,14 +246,12 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
         </TabsContent>
 
         <TabsContent value="unread" className="flex-1 overflow-y-auto m-0 p-0">
-          {/* Same structure as "all" tab but filtered for unread */}
           <div className="flex items-center justify-center h-full">
             <p className="text-muted-foreground">No unread messages</p>
           </div>
         </TabsContent>
 
         <TabsContent value="groups" className="flex-1 overflow-y-auto m-0 p-0">
-          {/* Same structure as "all" tab but filtered for groups */}
           <div className="flex items-center justify-center h-full">
             <p className="text-muted-foreground">No group chats</p>
           </div>
