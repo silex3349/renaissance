@@ -37,10 +37,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <Router>
-      <QueryClientProvider client={queryClient}>
-        <NotificationProvider>
-          <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <NotificationProvider>
+        <AuthProvider>
+          <Router>
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
@@ -58,10 +58,10 @@ function App() {
               </Route>
             </Routes>
             <Toaster />
-          </AuthProvider>
-        </NotificationProvider>
-      </QueryClientProvider>
-    </Router>
+          </Router>
+        </AuthProvider>
+      </NotificationProvider>
+    </QueryClientProvider>
   );
 }
 
