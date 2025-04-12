@@ -63,90 +63,105 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
     navigate(`/events/${event.id}`);
   };
 
+  // Determine card color based on event type or id (for demonstration)
+  const getCardColor = () => {
+    const colorIndex = parseInt(event.id.replace(/\D/g, ''), 10) % 5; // Extract numbers from id and mod 5
+    const colors = ["card-salmon", "card-peach", "card-mint", "card-teal", "card-navy"];
+    return colors[colorIndex];
+  };
+
   return (
-    <Card 
-      className="event-card h-full flex flex-col transition-all duration-200 hover:shadow-md cursor-pointer"
+    <div 
+      className={`profile-card-stack cursor-pointer`}
       onClick={goToEventDetails}
     >
-      <div 
-        className="h-40 w-full bg-cover bg-center relative"
-        style={{ 
-          backgroundImage: event.imageUrl 
-            ? `url(${event.imageUrl})` 
-            : 'url(https://images.unsplash.com/photo-1528605248644-14dd04022da1)' 
-        }}
+      <Card 
+        className={`profile-card ${getCardColor()} flex flex-col transition-all duration-200 hover:shadow-lg h-full`}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute top-3 right-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 hover:text-white"
-            onClick={toggleBookmark}
-          >
-            <BookmarkPlus className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
-          </Button>
-        </div>
-        <div className="absolute bottom-3 left-3 right-3">
-          <div className="flex gap-2 text-white text-sm">
-            {event.interests.slice(0, 2).map(interest => (
-              <span key={interest.id} className="bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
-                {interest.name}
-              </span>
-            ))}
-            {event.interests.length > 2 && (
-              <span className="bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
-                +{event.interests.length - 2} more
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <CardHeader className="pb-2 pt-4">
-        <div className="flex justify-between items-start">
-          <h3 className="font-semibold text-lg line-clamp-2">{event.title}</h3>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="flex-grow">
-        <div className="space-y-3">
-          <div className="flex items-start gap-2 text-sm">
-            <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-            <div>
-              <div>{formatDate(new Date(event.dateTime))}</div>
-              <div className="text-muted-foreground text-xs">{timeUntil}</div>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-2 text-sm">
-            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-            <div>{event.address || (event.location.city ? event.location.city : "Unknown location")}</div>
-          </div>
-          
-          <div className="flex items-start gap-2 text-sm">
-            <Users className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-            <div>
-              {event.attendees.length} attendees
-              {event.maxAttendees && ` / ${event.maxAttendees} spots`}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-      
-      <CardFooter>
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleJoin();
+        <div 
+          className="h-40 w-full bg-cover bg-center relative"
+          style={{ 
+            backgroundImage: event.imageUrl 
+              ? `url(${event.imageUrl})` 
+              : 'url(https://images.unsplash.com/photo-1528605248644-14dd04022da1)' 
           }}
-          className="w-full"
-          disabled={isFullyBooked || isJoining}
         >
-          {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join Event"}
-        </Button>
-      </CardFooter>
-    </Card>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute top-3 right-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 hover:text-white"
+              onClick={toggleBookmark}
+            >
+              <BookmarkPlus className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
+            </Button>
+          </div>
+          <div className="absolute bottom-3 left-3 right-3">
+            <div className="flex gap-2 text-white text-sm">
+              {event.interests.slice(0, 2).map(interest => (
+                <span key={interest.id} className="bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
+                  {interest.name}
+                </span>
+              ))}
+              {event.interests.length > 2 && (
+                <span className="bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
+                  +{event.interests.length - 2} more
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <CardHeader className="pb-2 pt-4">
+          <div className="flex justify-between items-start">
+            <h3 className="font-semibold text-lg line-clamp-2">{event.title}</h3>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="flex-grow">
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 text-sm">
+              <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+              <div>
+                <div>{formatDate(new Date(event.dateTime))}</div>
+                <div className="text-muted-foreground text-xs">{timeUntil}</div>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2 text-sm">
+              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+              <div>{event.address || (event.location.city ? event.location.city : "Unknown location")}</div>
+            </div>
+            
+            <div className="flex items-start gap-2 text-sm">
+              <Users className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+              <div>
+                {event.attendees.length} attendees
+                {event.maxAttendees && ` / ${event.maxAttendees} spots`}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+        
+        <CardFooter>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleJoin();
+            }}
+            className="w-full"
+            disabled={isFullyBooked || isJoining}
+          >
+            {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join Event"}
+          </Button>
+        </CardFooter>
+      </Card>
+      
+      {/* Add stacked card effect */}
+      <div className={`profile-card profile-card-stacked ${getCardColor()} opacity-70 absolute top-0 left-0 w-full h-full -z-10`} />
+      <div className={`profile-card profile-card-stacked ${getCardColor()} opacity-40 absolute top-0 left-0 w-full h-full -z-20`} />
+    </div>
   );
 };
 

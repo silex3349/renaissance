@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { motion } from "framer-motion";
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -30,6 +31,7 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname === path;
   const isHomePage = location.pathname === "/";
+  const isCustomStyledPage = location.pathname === "/discover" || location.pathname.includes("/matching");
 
   const navigationItems = [
     { name: "Home", path: "/", icon: <HomeIcon className="h-5 w-5" /> },
@@ -61,14 +63,22 @@ const Header = () => {
   ];
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isHomePage && !user ? 'bg-transparent border-transparent' : ''}`}>
+    <header className={`sticky top-0 z-50 w-full backdrop-blur supports-[backdrop-filter]:bg-background/60 
+      ${isHomePage && !user ? 'bg-transparent border-transparent' : isCustomStyledPage ? 'bg-transparent border-b border-white/10' : 'border-b bg-background/95'}`}>
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link
             to="/"
-            className={`flex items-center text-xl font-bold tracking-tighter ${isHomePage && !user ? 'text-white' : ''}`}
+            className={`flex items-center text-xl font-bold tracking-tighter ${isHomePage && !user || isCustomStyledPage ? 'text-white' : ''}`}
           >
-            <span className={isHomePage && !user ? 'text-white' : 'gradient-text'}>Renaissance</span>
+            <motion.span 
+              className={isHomePage && !user || isCustomStyledPage ? 'text-white' : 'gradient-text'}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              Renaissance
+            </motion.span>
           </Link>
         </div>
 
@@ -79,7 +89,7 @@ const Header = () => {
               key={item.path}
               to={item.path}
               className={`flex items-center text-sm gap-1 transition-colors ${
-                isHomePage && !user
+                isHomePage && !user || isCustomStyledPage
                   ? 'text-white/80 hover:text-white'
                   : isActive(item.path)
                   ? "text-foreground font-medium"
@@ -98,9 +108,9 @@ const Header = () => {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? (
-            <XIcon className={`h-6 w-6 ${isHomePage && !user ? 'text-white' : ''}`} />
+            <XIcon className={`h-6 w-6 ${isHomePage && !user || isCustomStyledPage ? 'text-white' : ''}`} />
           ) : (
-            <MenuIcon className={`h-6 w-6 ${isHomePage && !user ? 'text-white' : ''}`} />
+            <MenuIcon className={`h-6 w-6 ${isHomePage && !user || isCustomStyledPage ? 'text-white' : ''}`} />
           )}
         </button>
 
@@ -151,9 +161,9 @@ const Header = () => {
           ) : (
             <Link to="/signin">
               <Button 
-                variant={isHomePage ? "outline" : "default"} 
+                variant={isHomePage || isCustomStyledPage ? "outline" : "default"} 
                 size="sm"
-                className={isHomePage ? "border-white text-white hover:bg-white hover:text-renaissance-600" : ""}
+                className={isHomePage || isCustomStyledPage ? "border-white text-white hover:bg-white hover:text-purple-900" : ""}
               >
                 Sign In
               </Button>
@@ -164,7 +174,7 @@ const Header = () => {
 
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 top-16 z-50 bg-background md:hidden">
+        <div className={`fixed inset-0 top-16 z-50 md:hidden ${isCustomStyledPage ? 'bg-purple-900/95' : 'bg-background'}`}>
           <nav className="container py-6 flex flex-col gap-6">
             {navigationItems.map((item) => (
               <Link
@@ -172,8 +182,12 @@ const Header = () => {
                 to={item.path}
                 className={`flex items-center text-base gap-2 p-2 ${
                   isActive(item.path)
-                    ? "bg-accent rounded-md text-foreground font-medium"
-                    : "text-foreground/60"
+                    ? isCustomStyledPage 
+                      ? "bg-white/10 rounded-md text-white font-medium"
+                      : "bg-accent rounded-md text-foreground font-medium"
+                    : isCustomStyledPage
+                      ? "text-white/60"
+                      : "text-foreground/60"
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
