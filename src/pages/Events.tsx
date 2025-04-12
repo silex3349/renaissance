@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import SwipeCard from "@/components/matching/SwipeCard";
 import CreateGroupDialog from "@/components/groups/CreateGroupDialog";
 import LocationDetection from "@/components/location/LocationDetection";
 import { RefreshCw, Filter, Search, Plus, MapPin, Calendar, Users, Home, MessageSquare } from "lucide-react";
-import { Event, Group, User, Interest } from "@/types";
+import { Event, Group, User } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -240,35 +240,41 @@ const Events = () => {
   
   return (
     <div className="min-h-screen pb-20">
-      <div className="renaissance-container py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
-            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
-              <TabsList>
-                <TabsTrigger value="list">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Events
-                </TabsTrigger>
-                <TabsTrigger value="discover">
-                  <Search className="h-4 w-4 mr-2" />
-                  Discover
-                </TabsTrigger>
-                <TabsTrigger value="groups">
-                  <Users className="h-4 w-4 mr-2" />
-                  Groups
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+      <div className="pt-4 px-4">
+        {/* Top Tab Navigation */}
+        <div className="bg-gray-100 rounded-full mb-4 p-1">
+          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
+            <TabsList className="grid grid-cols-3 w-full bg-transparent">
+              <TabsTrigger value="list" className="rounded-full data-[state=active]:bg-white">
+                <Calendar className="h-5 w-5 mr-2" />
+                Events
+              </TabsTrigger>
+              <TabsTrigger value="discover" className="rounded-full data-[state=active]:bg-white">
+                <Search className="h-5 w-5 mr-2" />
+                Discover
+              </TabsTrigger>
+              <TabsTrigger value="groups" className="rounded-full data-[state=active]:bg-white">
+                <Users className="h-5 w-5 mr-2" />
+                Groups
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
+        {/* Location Badge */}
+        {user?.location && (
+          <div className="flex justify-center mb-4">
+            <Badge variant="outline" className="flex items-center gap-1 px-4 py-2 rounded-full border-gray-300">
+              <MapPin className="h-4 w-4" />
+              {user.location.city || "Current location"}
+            </Badge>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
+        )}
+        
+        {/* Filter Button - Top right */}
+        <div className="absolute top-4 right-4">
+          <Sheet>
+            <Button variant="outline" size="icon" className="rounded-full" asChild>
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle>Filter</SheetTitle>
@@ -302,31 +308,22 @@ const Events = () => {
                   </div>
                 </div>
               </SheetContent>
-            </Sheet>
-            
-            <Button onClick={() => viewMode === "groups" ? setShowCreateDialog(true) : navigate("/events/create")}>
-              <Plus className="h-4 w-4 mr-2" />
-              {viewMode === "groups" ? "Create Group" : "Create Event"}
             </Button>
-          </div>
+          </Sheet>
+          
+          {/* Create Button */}
+          <Button className="ml-2 rounded-full" onClick={() => viewMode === "groups" ? setShowCreateDialog(true) : navigate("/events/create")}>
+            <Plus className="h-5 w-5" />
+          </Button>
         </div>
         
-        {user?.location && (
-          <div className="mb-4 flex items-center justify-center">
-            <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
-              <MapPin className="h-3 w-3" />
-              {user.location.city || "Current location"}
-            </Badge>
-          </div>
-        )}
-        
-        {/* Search */}
+        {/* Search Bar */}
         {viewMode !== "discover" && (
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="relative mb-4 mt-6">
+            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
             <Input
               placeholder={`Search ${viewMode === "groups" ? "groups" : "events"}...`}
-              className="pl-10"
+              className="pl-10 py-6 rounded-xl bg-gray-50 border-gray-200"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -335,34 +332,36 @@ const Events = () => {
         
         {/* Content based on view mode */}
         {viewMode === "list" && (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="joined">Joined</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              <TabsTrigger value="nearby">Nearby</TabsTrigger>
-            </TabsList>
+          <>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+              <TabsList className="grid grid-cols-4 mb-4 bg-gray-100 p-1 rounded-full">
+                <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-white">All</TabsTrigger>
+                <TabsTrigger value="joined" className="rounded-full data-[state=active]:bg-white">Joined</TabsTrigger>
+                <TabsTrigger value="upcoming" className="rounded-full data-[state=active]:bg-white">Upcoming</TabsTrigger>
+                <TabsTrigger value="nearby" className="rounded-full data-[state=active]:bg-white">Nearby</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value={activeTab} className="space-y-4">
-              <EventList 
-                events={filteredEvents} 
-                title={
-                  activeTab === "all" ? "All Events" :
-                  activeTab === "joined" ? "Your Events" :
-                  activeTab === "upcoming" ? "Upcoming Events" :
-                  "Events Near You"
-                }
-              />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value={activeTab} className="space-y-4">
+                <EventList 
+                  events={filteredEvents} 
+                  title={
+                    activeTab === "all" ? "All Events" :
+                    activeTab === "joined" ? "Your Events" :
+                    activeTab === "upcoming" ? "Upcoming Events" :
+                    "Events Near You"
+                  }
+                />
+              </TabsContent>
+            </Tabs>
+          </>
         )}
         
         {viewMode === "groups" && (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="all">All Groups</TabsTrigger>
-              <TabsTrigger value="my-groups">My Groups</TabsTrigger>
-              <TabsTrigger value="created">Created By Me</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList className="grid grid-cols-3 mb-4 bg-gray-100 p-1 rounded-full">
+              <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-white">All Groups</TabsTrigger>
+              <TabsTrigger value="my-groups" className="rounded-full data-[state=active]:bg-white">My Groups</TabsTrigger>
+              <TabsTrigger value="created" className="rounded-full data-[state=active]:bg-white">Created</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="space-y-4">
@@ -410,7 +409,7 @@ const Events = () => {
                   {likedEvents.length > 0 && ` You liked ${likedEvents.length} events.`}
                 </p>
                 
-                <Button onClick={resetCards}>
+                <Button onClick={resetCards} className="rounded-full">
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Find More Events
                 </Button>
@@ -423,13 +422,13 @@ const Events = () => {
                   {swipeEvents.length - currentIndex} more events to discover
                 </p>
                 <div className="flex justify-center gap-4">
-                  <Button variant="outline" size="sm" onClick={resetCards}>
+                  <Button variant="outline" size="sm" onClick={resetCards} className="rounded-full">
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Refresh
                   </Button>
                   
                   {!user?.location && (
-                    <Button size="sm" onClick={() => setShowLocationPrompt(true)}>
+                    <Button size="sm" onClick={() => setShowLocationPrompt(true)} className="rounded-full">
                       <MapPin className="w-4 h-4 mr-2" />
                       Add Location
                     </Button>
@@ -447,28 +446,28 @@ const Events = () => {
       </div>
       
       {/* Bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2">
         <div className="flex justify-around items-center">
-          <a href="/" className="flex flex-col items-center p-2 text-muted-foreground hover:text-foreground">
+          <a href="/" className="flex flex-col items-center p-2 text-gray-500 hover:text-black">
             <Home className="h-6 w-6" />
             <span className="text-xs mt-1">Home</span>
           </a>
-          <a href="/events" className="flex flex-col items-center p-2 text-foreground">
+          <a href="/events" className="flex flex-col items-center p-2 text-black">
             <Calendar className="h-6 w-6" />
             <span className="text-xs mt-1">Events</span>
           </a>
-          <a href="/chats" className="flex flex-col items-center p-2 text-muted-foreground hover:text-foreground">
+          <a href="/chats" className="flex flex-col items-center p-2 text-gray-500 hover:text-black">
             <MessageSquare className="h-6 w-6" />
             <span className="text-xs mt-1">Messages</span>
           </a>
-          <a href="/profile" className="flex flex-col items-center p-2 text-muted-foreground hover:text-foreground">
+          <a href="/profile" className="flex flex-col items-center p-2 text-gray-500 hover:text-black">
             {user ? (
               <Avatar className="h-6 w-6">
                 <AvatarImage src={user.avatar} alt={user.name || "User"} />
                 <AvatarFallback className="text-xs">{user.name ? user.name.charAt(0).toUpperCase() : "U"}</AvatarFallback>
               </Avatar>
             ) : (
-              <div className="h-6 w-6 rounded-full bg-muted"></div>
+              <div className="h-6 w-6 rounded-full bg-gray-200"></div>
             )}
             <span className="text-xs mt-1">Profile</span>
           </a>

@@ -2,7 +2,7 @@
 import { Event } from "@/types";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, Clock, BookmarkPlus } from "lucide-react";
+import { Calendar, MapPin, Users, BookmarkPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -72,14 +72,14 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
 
   return (
     <div 
-      className={`profile-card-stack cursor-pointer`}
+      className="profile-card-stack cursor-pointer rounded-lg overflow-hidden shadow-sm"
       onClick={goToEventDetails}
     >
       <Card 
-        className={`profile-card ${getCardColor()} flex flex-col transition-all duration-200 hover:shadow-lg h-full`}
+        className={`profile-card ${getCardColor()} flex flex-col transition-all duration-200 hover:shadow-lg h-full border-0`}
       >
         <div 
-          className="h-40 w-full bg-cover bg-center relative"
+          className="h-48 w-full bg-cover bg-center relative"
           style={{ 
             backgroundImage: event.imageUrl 
               ? `url(${event.imageUrl})` 
@@ -91,7 +91,7 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 hover:text-white"
+              className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 hover:text-white rounded-full"
               onClick={toggleBookmark}
             >
               <BookmarkPlus className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
@@ -119,48 +119,42 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-grow">
-          <div className="space-y-3">
-            <div className="flex items-start gap-2 text-sm">
-              <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-              <div>
-                <div>{formatDate(new Date(event.dateTime))}</div>
-                <div className="text-muted-foreground text-xs">{timeUntil}</div>
-              </div>
+        <CardContent className="flex-grow space-y-3 py-0">
+          <div className="flex items-center gap-2 text-sm">
+            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div>
+              <div>{formatDate(new Date(event.dateTime))}</div>
+              <div className="text-muted-foreground text-xs">{timeUntil}</div>
             </div>
-            
-            <div className="flex items-start gap-2 text-sm">
-              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-              <div>{event.address || (event.location.city ? event.location.city : "Unknown location")}</div>
-            </div>
-            
-            <div className="flex items-start gap-2 text-sm">
-              <Users className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-              <div>
-                {event.attendees.length} attendees
-                {event.maxAttendees && ` / ${event.maxAttendees} spots`}
-              </div>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div>{event.address || (event.location.city ? event.location.city : "Unknown location")}</div>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div>
+              {event.attendees.length} attendees
+              {event.maxAttendees && ` / ${event.maxAttendees} spots`}
             </div>
           </div>
         </CardContent>
         
-        <CardFooter>
+        <CardFooter className="pt-4">
           <Button
             onClick={(e) => {
               e.stopPropagation();
               handleJoin();
             }}
-            className="w-full"
+            className="w-full rounded-full"
             disabled={isFullyBooked || isJoining}
           >
             {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join Event"}
           </Button>
         </CardFooter>
       </Card>
-      
-      {/* Add stacked card effect */}
-      <div className={`profile-card profile-card-stacked ${getCardColor()} opacity-70 absolute top-0 left-0 w-full h-full -z-10`} />
-      <div className={`profile-card profile-card-stacked ${getCardColor()} opacity-40 absolute top-0 left-0 w-full h-full -z-20`} />
     </div>
   );
 };

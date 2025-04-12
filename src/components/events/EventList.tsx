@@ -44,7 +44,7 @@ const EventList = ({ events, title = "Events", description }: EventListProps) =>
 
   if (events.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-6">
         <h3 className="text-xl font-medium mb-2">{title}</h3>
         <p className="text-muted-foreground">No events found.</p>
       </div>
@@ -52,7 +52,7 @@ const EventList = ({ events, title = "Events", description }: EventListProps) =>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <h3 className="text-2xl font-medium">{title}</h3>
@@ -68,7 +68,7 @@ const EventList = ({ events, title = "Events", description }: EventListProps) =>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         {events.map((event) => (
           <EventCard 
             key={event.id} 
