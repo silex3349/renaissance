@@ -1,10 +1,56 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getAllUsers } from "@/services/apiUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import SwipeUserCard from "@/components/matching/SwipeUserCard";
 import { Button } from "@/components/ui/button";
-import { ReloadIcon } from "@radix-ui/react-icons";
+import { RefreshCw } from "lucide-react";
+
+// Temporary mock implementation of getAllUsers until the real API is available
+const getAllUsers = async () => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Return a list of mock users
+  return [
+    {
+      id: "user1",
+      email: "user1@example.com",
+      name: "Alex Johnson",
+      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user1",
+      bio: "Love hiking and photography",
+      location: { city: "San Francisco", country: "USA" },
+      interests: [
+        { id: "hiking", name: "Hiking" },
+        { id: "photography", name: "Photography" }
+      ]
+    },
+    {
+      id: "user2",
+      email: "user2@example.com",
+      name: "Sam Taylor",
+      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user2",
+      bio: "Tech enthusiast and coffee lover",
+      location: { city: "Austin", country: "USA" },
+      interests: [
+        { id: "technology", name: "Technology" },
+        { id: "coffee", name: "Coffee" }
+      ]
+    },
+    {
+      id: "user3",
+      email: "user3@example.com",
+      name: "Jordan Lee",
+      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user3",
+      bio: "Traveling and trying new foods",
+      location: { city: "Chicago", country: "USA" },
+      interests: [
+        { id: "travel", name: "Travel" },
+        { id: "food", name: "Dining Out" }
+      ]
+    }
+  ];
+};
 
 const Discover = () => {
   const { user } = useAuth();
@@ -93,7 +139,7 @@ const Discover = () => {
           <div className="text-center text-white">
             <p>No more profiles to display.</p>
             <Button onClick={handleReload}>
-              <ReloadIcon className="mr-2 h-4 w-4" />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Reload Profiles
             </Button>
           </div>
