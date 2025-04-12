@@ -21,8 +21,8 @@ const getAllUsers = async (): Promise<User[]> => {
       bio: "Love hiking and photography",
       location: { city: "San Francisco", country: "USA" },
       interests: [
-        { id: "hiking", name: "Hiking" },
-        { id: "photography", name: "Photography" }
+        { id: "hiking", name: "Hiking", category: "Outdoors" },
+        { id: "photography", name: "Photography", category: "Arts" }
       ]
     },
     {
@@ -33,8 +33,8 @@ const getAllUsers = async (): Promise<User[]> => {
       bio: "Tech enthusiast and coffee lover",
       location: { city: "Austin", country: "USA" },
       interests: [
-        { id: "technology", name: "Technology" },
-        { id: "coffee", name: "Coffee" }
+        { id: "technology", name: "Technology", category: "Professional" },
+        { id: "coffee", name: "Coffee", category: "Food" }
       ]
     },
     {
@@ -45,8 +45,8 @@ const getAllUsers = async (): Promise<User[]> => {
       bio: "Traveling and trying new foods",
       location: { city: "Chicago", country: "USA" },
       interests: [
-        { id: "travel", name: "Travel" },
-        { id: "food", name: "Dining Out" }
+        { id: "travel", name: "Travel", category: "Adventure" },
+        { id: "food", name: "Dining Out", category: "Food" }
       ]
     }
   ];
