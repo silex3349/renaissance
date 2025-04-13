@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { MOCK_EVENTS, MOCK_GROUPS } from "@/services/mockData";
+import { MOCK_EVENTS, MOCK_GROUPS, MOCK_USERS } from "@/services/mockData";
 import EventDetail from "@/components/events/EventDetail";
 import EventList from "@/components/events/EventList";
 import GroupList from "@/components/groups/GroupList";

@@ -1,4 +1,3 @@
-
 import { User, Interest, Group } from "@/types";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => void;
   updateUserInterests: (interests: string[]) => void;
+  updateUserProfile: (profileData: Partial<User>) => void;
   updateUserLocation: (latitude: number, longitude: number) => void;
   updateUserAgeRange: (ageRange: string) => void;
   joinEvent: (eventId: string) => void;
@@ -35,7 +35,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { addNotification } = useNotifications();
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
     const storedUser = localStorage.getItem("renaissanceUser");
     if (storedUser) {
       try {
@@ -51,7 +50,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock authentication - in a real app, this would call your auth backend
       setTimeout(() => {
         const mockUser: User = {
           id: `user_${Date.now()}`,
@@ -84,7 +82,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock registration - in a real app, this would call your auth backend
       setTimeout(() => {
         const newUser: User = {
           id: `user_${Date.now()}`,
@@ -126,11 +123,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateUserInterests = (interestIds: string[]) => {
     if (!user) return;
     
-    // In a real app, this would call your backend
     const updatedUser = {
       ...user,
       interests: interestIds.map(id => 
-        // Find the interest in our mock data
         INTERESTS.find(interest => interest.id === id) || { 
           id, 
           name: "Unknown Interest", 
@@ -143,10 +138,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
   };
 
+  const updateUserProfile = (profileData: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = {
+      ...user,
+      ...profileData
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+  };
+
   const updateUserLocation = (latitude: number, longitude: number) => {
     if (!user) return;
     
-    // In a real app, this would call your backend
     const updatedUser = {
       ...user,
       location: { 
@@ -165,7 +171,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return;
     
     try {
-      // Parse the JSON string to get the age range object
       const ageRange = JSON.parse(ageRangeStr);
       
       const updatedUser = {
@@ -254,7 +259,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(updatedUser);
     localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
     
-    // Notify user
     addNotification({
       type: "joinedGroup",
       message: "You have joined a new group",
@@ -282,7 +286,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }) => {
     if (!user) return;
     
-    // Mock creating a group - in a real app this would call your backend
     const newGroup: Group = {
       id: `group_${Date.now()}`,
       name: groupData.name,
@@ -301,8 +304,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       events: [],
     };
     
-    // In a real app, you would save this to the database
-    // For our mock app, we'll just add the group ID to the user's groups
     const updatedUser = {
       ...user,
       joinedGroups: [...(user.joinedGroups || []), newGroup.id]
@@ -311,8 +312,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(updatedUser);
     localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
     
-    // We would also update a groups collection in a real app
-    // Here we'll just add to our mock data for demo purposes
     MOCK_GROUPS.push(newGroup as any);
   };
 
@@ -325,6 +324,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signOut,
         updateUserInterests,
+        updateUserProfile,
         updateUserLocation,
         updateUserAgeRange,
         joinEvent,
@@ -348,5 +348,4 @@ export const useAuth = () => {
   return context;
 };
 
-// Import from services at the end to avoid circular dependencies
 import { INTERESTS, MOCK_GROUPS } from "@/services/mockData";
