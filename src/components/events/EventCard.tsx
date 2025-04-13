@@ -2,7 +2,7 @@
 import { Event } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, Bookmark, BookmarkPlus } from "lucide-react";
+import { Calendar, MapPin, Users, Bookmark, BookmarkPlus, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +64,22 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
     navigate(`/events/${event.id}`);
   };
 
+  // Default background images if none provided
+  const defaultImages = [
+    "https://images.unsplash.com/photo-1528605248644-14dd04022da1",
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
+  ];
+  
+  // Use the event ID to consistently select an image from the array
+  const getBackgroundImage = () => {
+    if (event.imageUrl) return event.imageUrl;
+    const index = parseInt(event.id.replace(/\D/g, '')) % defaultImages.length;
+    return defaultImages[index];
+  };
+
   return (
     <div 
       className="event-card rounded-lg overflow-hidden shadow-sm cursor-pointer"
@@ -73,11 +89,7 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
         {/* Event Image with Category Label and Bookmark Button */}
         <div 
           className="h-48 w-full bg-cover bg-center relative"
-          style={{ 
-            backgroundImage: event.imageUrl 
-              ? `url(${event.imageUrl})` 
-              : 'url(https://images.unsplash.com/photo-1528605248644-14dd04022da1)' 
-          }}
+          style={{ backgroundImage: `url(${getBackgroundImage()})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
           

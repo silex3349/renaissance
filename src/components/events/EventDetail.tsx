@@ -102,6 +102,11 @@ const EventDetail = ({ event, attendees }: EventDetailProps) => {
     }
   };
 
+  // Fix back button to always go to events page
+  const handleBackClick = () => {
+    navigate("/events");
+  };
+
   // Reset attendees visibility when changing events
   useEffect(() => {
     setAttendeesVisible(false);
@@ -110,13 +115,29 @@ const EventDetail = ({ event, attendees }: EventDetailProps) => {
     setIsReminded(false);
   }, [event.id]);
 
+  // Default background images if none provided
+  const defaultImages = [
+    "https://images.unsplash.com/photo-1528605248644-14dd04022da1",
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
+  ];
+  
+  // Use the event ID to consistently select an image from the array
+  const getBackgroundImage = () => {
+    if (event.imageUrl) return event.imageUrl;
+    const index = parseInt(event.id.replace(/\D/g, '')) % defaultImages.length;
+    return defaultImages[index];
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/events")}
+          onClick={handleBackClick}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -133,17 +154,11 @@ const EventDetail = ({ event, attendees }: EventDetailProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-              {event.imageUrl ? (
-                <img
-                  src={event.imageUrl}
-                  alt={event.title}
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <Calendar className="h-12 w-12 opacity-20" />
-                </div>
-              )}
+              <img
+                src={getBackgroundImage()}
+                alt={event.title}
+                className="object-cover w-full h-full"
+              />
             </div>
 
             <div className="flex flex-col gap-3">

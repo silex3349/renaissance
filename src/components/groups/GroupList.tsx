@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Group } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Users, MapPin } from "lucide-react";
+import { Lock, Users, MapPin, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface GroupListProps {
@@ -24,64 +24,101 @@ const GroupList = ({ groups, title }: GroupListProps) => {
     );
   }
 
-  // Card color variations
-  const getCardColor = (index: number) => {
-    const colors = ["card-salmon", "card-peach", "card-mint", "card-teal", "card-navy"];
-    return colors[index % colors.length];
+  // Default background images for groups
+  const defaultGroupImages = [
+    "https://images.unsplash.com/photo-1528605248644-14dd04022da1",
+    "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d",
+    "https://images.unsplash.com/photo-1521737711867-e3b97375f902",
+    "https://images.unsplash.com/photo-1511632765486-a01980e01a18"
+  ];
+
+  // Use the group ID to consistently select an image from the array
+  const getBackgroundImage = (groupId: string) => {
+    const index = parseInt(groupId.replace(/\D/g, '')) % defaultGroupImages.length;
+    return defaultGroupImages[index];
   };
 
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">{title || "Groups"}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {groups.map((group, index) => (
-          <Link key={group.id} to={`/groups/${group.id}`} className="profile-card-stack">
+      <div className="grid grid-cols-1 gap-6">
+        {groups.map((group) => (
+          <Link key={group.id} to={`/groups/${group.id}`} className="block">
             <motion.div
-              className={`profile-card ${getCardColor(index)} h-full hover:shadow-lg`}
+              className="event-card rounded-lg overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow"
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
             >
-              <CardContent className="p-6">
-                <div className="profile-card-header mb-3">
-                  <h3 className="profile-card-name">{group.name}</h3>
-                  <div className="profile-card-badge badge-check">
-                    {group.isPrivate ? <Lock size={14} /> : <Users size={14} />}
+              <Card className="border-0">
+                {/* Group Image with Category Label */}
+                <div 
+                  className="h-48 w-full bg-cover bg-center relative"
+                  style={{ backgroundImage: `url(${getBackgroundImage(group.id)})` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
+                  
+                  {/* Group type badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-black/50 text-white px-4 py-1 rounded-full text-sm backdrop-blur-sm flex items-center gap-1">
+                      {group.isPrivate ? (
+                        <>
+                          <Lock size={14} />
+                          Private Group
+                        </>
+                      ) : (
+                        <>
+                          <Users size={14} />
+                          Public Group
+                        </>
+                      )}
+                    </span>
                   </div>
                 </div>
-                <p className="text-sm line-clamp-2 mb-3">{group.description}</p>
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {group.interests.slice(0, 3).map((interest) => (
-                    <Badge
-                      key={interest.id}
-                      variant="secondary"
-                      className="bg-black/10 hover:bg-black/20 text-xs"
-                    >
-                      {interest.name}
-                    </Badge>
-                  ))}
-                  {group.interests.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{group.interests.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center">
-                    <Users className="h-3 w-3 mr-1" />
-                    <span>{group.members.length} members</span>
+                
+                {/* Group Info */}
+                <CardContent className="p-4 bg-orange-100">
+                  <h3 className="text-xl font-bold mb-3">{group.name}</h3>
+                  
+                  <p className="text-sm line-clamp-2 mb-3">{group.description}</p>
+                  
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {group.interests.slice(0, 3).map((interest) => (
+                      <Badge
+                        key={interest.id}
+                        variant="secondary"
+                        className="bg-black/10 hover:bg-black/20 text-xs"
+                      >
+                        {interest.name}
+                      </Badge>
+                    ))}
+                    {group.interests.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{group.interests.length - 3} more
+                      </Badge>
+                    )}
                   </div>
-                  {group.location && (
-                    <div className="flex items-center">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      <span>{group.location.city}</span>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4 text-gray-600" />
+                      <span>{group.members.length} members</span>
                     </div>
-                  )}
-                </div>
-              </CardContent>
+                    
+                    <div className="flex items-center gap-1">
+                      <CalendarDays className="h-4 w-4 text-gray-600" />
+                      <span>{group.events.length} events</span>
+                    </div>
+                    
+                    {group.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4 text-gray-600" />
+                        <span>{group.location.city}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
-            
-            {/* Stack effect */}
-            <div className={`profile-card profile-card-stacked ${getCardColor(index)} opacity-70 absolute top-0 left-0 w-full h-full -z-10`} />
-            <div className={`profile-card profile-card-stacked ${getCardColor(index)} opacity-40 absolute top-0 left-0 w-full h-full -z-20`} />
           </Link>
         ))}
       </div>

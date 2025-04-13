@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,14 +31,11 @@ const Events = () => {
   const { toast } = useToast();
   const searchInputRef = useRef<HTMLInputElement>(null);
   
-  // State for the main view mode
   const [viewMode, setViewMode] = useState<"list" | "discover" | "groups">("list");
   
-  // Detail view states
   const isDetailView = !!id;
   const [detailType, setDetailType] = useState<"event" | "group">("event");
   
-  // Filter and search states
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -48,10 +44,8 @@ const Events = () => {
   const [filterOnlyNearby, setFilterOnlyNearby] = useState(false);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   
-  // Map view state
   const [showMapView, setShowMapView] = useState(false);
   
-  // State for discover/swipe mode
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likedEvents, setLikedEvents] = useState<string[]>([]);
   const [swipeEvents, setSwipeEvents] = useState<Event[]>([]);
@@ -59,11 +53,9 @@ const Events = () => {
   const [locationDetected, setLocationDetected] = useState(!!user?.location);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   
-  // Type assertions for mock data
   const typedMockEvents = MOCK_EVENTS as Event[];
   const typedMockGroups = MOCK_GROUPS as Group[];
   
-  // Find the current event or group if we're on the detail page
   const currentEvent = isDetailView && detailType === "event"
     ? typedMockEvents.find((event) => event.id === id) as Event || null
     : null;
@@ -72,7 +64,6 @@ const Events = () => {
     ? typedMockGroups.find((group) => group.id === id) as Group || null
     : null;
   
-  // Get attendees or members for the current event or group
   const attendees = currentEvent
     ? MOCK_USERS.filter((user) => currentEvent.attendees.includes(user.id)) as User[]
     : [];
@@ -81,7 +72,6 @@ const Events = () => {
     ? MOCK_USERS.filter((user) => currentGroup.members.includes(user.id)) as User[]
     : [];
   
-  // Filter events based on search term and active tab
   const filteredEvents = typedMockEvents.filter((event) => {
     const matchesSearch = event.title
       .toLowerCase()
@@ -97,7 +87,6 @@ const Events = () => {
     return matchesSearch && matchesTab;
   });
   
-  // Filter groups based on search term and active tab
   const filteredGroups = typedMockGroups.filter((group) => {
     const matchesSearch = group.name
       .toLowerCase()
@@ -111,11 +100,9 @@ const Events = () => {
         user?.id && 
         group.creator === user.id);
     
-    // Also include public groups in "all" tab
     return matchesSearch && (matchesTab || (!group.isPrivate && activeTab === "all"));
   });
   
-  // Determine if looking at event or group when on detail page
   useEffect(() => {
     if (id) {
       const isEvent = typedMockEvents.some(event => event.id === id);
@@ -123,21 +110,17 @@ const Events = () => {
     }
   }, [id]);
   
-  // Load events for discover/swipe mode
   useEffect(() => {
     if (viewMode === "discover") {
       loadEvents();
     }
   }, [viewMode, user, locationDetected, filterOnlyNearby]);
   
-  // Load events for discover/swipe mode
   const loadEvents = () => {
     setIsLoading(true);
-    // Simulate API delay for filtering events
     setTimeout(() => {
       let filteredEvents = [...typedMockEvents];
       
-      // Filter by user interests if available
       if (user?.interests && user.interests.length > 0) {
         const interestFiltered = filteredEvents.filter(event => 
           event.interests.some(interest => 
@@ -152,15 +135,12 @@ const Events = () => {
         }
       }
       
-      // Further filter by location if user has location and filter is enabled
       if (user?.location && filterOnlyNearby) {
-        // For demo purposes, just match city names
         filteredEvents = filteredEvents.filter(event => 
           event.location.city === user.location.city
         );
       }
       
-      // Randomize the order slightly to add variety
       filteredEvents = [...filteredEvents].sort(() => 0.5 - Math.random());
       
       setSwipeEvents(filteredEvents);
@@ -169,7 +149,6 @@ const Events = () => {
     }, 800);
   };
   
-  // Focus search input when pressing '/' key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === '/' && searchInputRef.current) {
@@ -184,7 +163,6 @@ const Events = () => {
     };
   }, []);
   
-  // Handle location detection
   const handleLocationDetected = () => {
     setLocationDetected(true);
     setLocationPromptVisible(false);
@@ -192,12 +170,9 @@ const Events = () => {
     loadEvents();
   };
   
-  // Handle swipe in discover mode
   const handleSwipe = (direction: "left" | "right", event: Event) => {
-    // Move to the next card
     setCurrentIndex(prevIndex => prevIndex + 1);
     
-    // If swiped right (liked), add to liked events
     if (direction === "right") {
       setLikedEvents(prev => [...prev, event.id]);
       toast({
@@ -207,10 +182,8 @@ const Events = () => {
     }
   };
   
-  // Reset cards in discover mode
   const resetCards = () => {
     setCurrentIndex(0);
-    // Refresh events list
     loadEvents();
     toast({
       title: "Events refreshed",
@@ -218,17 +191,14 @@ const Events = () => {
     });
   };
   
-  // Handle search functionality
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
   
-  // Toggle map view for nearby events
   const toggleMapView = () => {
     setShowMapView(!showMapView);
   };
   
-  // Check if location prompt should be shown for nearby events
   useEffect(() => {
     if (activeTab === "nearby" && !user?.location && viewMode === "list") {
       setLocationPromptVisible(true);
@@ -237,10 +207,8 @@ const Events = () => {
     }
   }, [activeTab, user?.location, viewMode]);
   
-  // Determine if we have cards to show in discover mode
   const hasCards = currentIndex < swipeEvents.length;
   
-  // Render location detection prompt
   if ((locationPromptVisible && viewMode === "list") || (showLocationPrompt && viewMode === "discover")) {
     return (
       <div className="renaissance-container py-8">
@@ -251,7 +219,6 @@ const Events = () => {
     );
   }
   
-  // Render detail view
   if (isDetailView) {
     return (
       <div className="renaissance-container py-8">
@@ -270,7 +237,6 @@ const Events = () => {
     );
   }
   
-  // Render create event sheet
   if (showCreateEventSheet) {
     return <CreateEventForm onClose={() => setShowCreateEventSheet(false)} />;
   }
@@ -278,7 +244,6 @@ const Events = () => {
   return (
     <div className="min-h-screen pb-20">
       <div className="pt-4 px-4">
-        {/* Top Tab Navigation */}
         <div className="bg-gray-100 rounded-full mb-4 p-1">
           <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
             <TabsList className="grid grid-cols-3 w-full bg-transparent">
@@ -298,7 +263,6 @@ const Events = () => {
           </Tabs>
         </div>
         
-        {/* Location Badge */}
         {user?.location && (
           <div className="flex justify-center mb-4">
             <Badge variant="outline" className="flex items-center gap-1 px-4 py-2 rounded-full border-gray-300">
@@ -308,7 +272,6 @@ const Events = () => {
           </div>
         )}
         
-        {/* Filter Dialog */}
         <Sheet open={showFilterSheet} onOpenChange={setShowFilterSheet}>
           <SheetContent>
             <SheetHeader>
@@ -345,36 +308,33 @@ const Events = () => {
           </SheetContent>
         </Sheet>
         
-        {/* Filter Button - Top right */}
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="absolute top-4 right-4 rounded-full" 
-          onClick={() => setShowFilterSheet(true)}
-        >
-          <Filter className="h-5 w-5" />
-        </Button>
-        
-        {/* Search Bar */}
         {viewMode !== "discover" && (
           <div className="relative mb-4 mt-6">
             <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
             <Input
               ref={searchInputRef}
               placeholder={`Search ${viewMode === "groups" ? "groups" : "events"}...`}
-              className="pl-10 py-6 rounded-xl bg-gray-50 border-gray-200"
+              className="pl-10 pr-12 py-6 rounded-xl bg-gray-50 border-gray-200"
               value={searchTerm}
               onChange={handleSearch}
             />
             {!searchTerm && (
-              <kbd className="absolute right-3 top-3 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-50">
+              <kbd className="absolute right-12 top-3 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-50">
                 /
               </kbd>
             )}
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-2 top-2 text-gray-500" 
+              onClick={() => setShowFilterSheet(true)}
+            >
+              <Filter className="h-5 w-5" />
+            </Button>
           </div>
         )}
         
-        {/* Content based on view mode */}
         {viewMode === "list" && (
           <>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -494,12 +454,11 @@ const Events = () => {
           onOpenChange={setShowCreateDialog}
         />
         
-        {/* Fixed Create Button at bottom-left */}
         <Button 
-          className="fixed left-4 bottom-20 rounded-full shadow-lg z-20"
+          className="fixed right-4 bottom-20 rounded-full shadow-lg z-20 flex items-center gap-2"
           onClick={() => viewMode === "groups" ? setShowCreateDialog(true) : setShowCreateEventSheet(true)}
         >
-          <Plus className="h-5 w-5 mr-2" />
+          <Plus className="h-5 w-5" />
           {viewMode === "groups" ? "Create Group" : "Create Event"}
         </Button>
       </div>

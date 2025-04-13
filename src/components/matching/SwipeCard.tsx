@@ -1,205 +1,138 @@
 
-import React, { useState } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import React from "react";
+import { motion } from "framer-motion";
 import { Event } from "@/types";
+import { Calendar, MapPin, Users, BookmarkPlus, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Check, X, Calendar, MapPin, Users, Clock, Heart } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-
-// Swipe threshold - if surpassed, it's considered a full swipe
-const SWIPE_THRESHOLD = 100;
+import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface SwipeCardProps {
   event: Event;
+  isActive?: boolean;
   onSwipe: (direction: "left" | "right", event: Event) => void;
-  isActive: boolean;
 }
 
-const SwipeCard = ({ event, onSwipe, isActive }: SwipeCardProps) => {
-  const [swipedDirection, setSwipedDirection] = useState<"left" | "right" | null>(null);
-  const x = useMotionValue(0);
-  const { toast } = useToast();
-
-  // Determine background color based on swipe direction
-  const background = useTransform(
-    x,
-    [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD],
-    ["#FFDCDC", "#FFFFFF", "#D4FFD4"]
-  );
-
-  // Determine opacity of like/dislike icons based on swipe
-  const opacity = useTransform(
-    x,
-    [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD],
-    [1, 0, 1]
-  );
-
-  // Determine rotation based on swipe distance
-  const rotate = useTransform(
-    x,
-    [-SWIPE_THRESHOLD * 2, 0, SWIPE_THRESHOLD * 2],
-    [-15, 0, 15]
-  );
-
-  const handleSwipe = (direction: "left" | "right") => {
-    setSwipedDirection(direction);
-    onSwipe(direction, event);
-    
-    if (direction === "right") {
-      toast({
-        title: "Event bookmarked!",
-        description: "You can view this event in your saved events.",
-      });
-    }
-  };
-
-  const dragConstraints = { left: -200, right: 200 };
-
-  const handleDrag = (event: any, info: any) => {
-    x.set(info.point.x);
-  };
-
-  const handleDragEnd = () => {
-    if (x.get() < -SWIPE_THRESHOLD) {
-      handleSwipe("left");
-    } else if (x.get() > SWIPE_THRESHOLD) {
-      handleSwipe("right");
-    } else {
-      x.set(0); // Reset position if swipe is not past threshold
-    }
-  };
-
-  // Use the appropriate date field (dateTime or startTime)
-  const eventDate = event.dateTime || event.startTime;
-  const eventTitle = event.title || event.name;
+const SwipeCard = ({ event, isActive = false, onSwipe }: SwipeCardProps) => {
+  const navigate = useNavigate();
   
-  // Get location display
-  const getLocationDisplay = () => {
-    if (event.address) return event.address;
-    if (event.location?.city) return event.location.city;
-    return "Unknown location";
+  // Format date for display
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+  };
+
+  const timeUntil = formatDistanceToNow(new Date(event.dateTime), {
+    addSuffix: true,
+  });
+  
+  // Default background images if none provided
+  const defaultImages = [
+    "https://images.unsplash.com/photo-1528605248644-14dd04022da1",
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
+  ];
+  
+  // Use the event ID to consistently select an image from the array
+  const getBackgroundImage = () => {
+    if (event.imageUrl) return event.imageUrl;
+    const index = parseInt(event.id.replace(/\D/g, '')) % defaultImages.length;
+    return defaultImages[index];
+  };
+
+  // Navigate to event detail on click
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/events/${event.id}`);
   };
 
   return (
     <motion.div
-      className={cn(
-        "absolute top-0 left-0 w-full h-full",
-        isActive ? "block" : "hidden"
-      )}
-      style={{
-        zIndex: isActive ? 1 : 0,
+      className={`absolute inset-0 bg-white rounded-xl overflow-hidden shadow-lg ${
+        isActive ? "z-10" : "z-0 pointer-events-none"
+      }`}
+      initial={isActive ? { scale: 0.95, opacity: 0 } : { scale: 0.9, opacity: 0 }}
+      animate={isActive ? { scale: 1, opacity: 1 } : { scale: 0.9, opacity: 0 }}
+      exit={{ x: -300, opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+      drag={isActive ? "x" : false}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.9}
+      onDragEnd={(e, { offset, velocity }) => {
+        const swipe = offset.x;
+        if (Math.abs(swipe) > 100) {
+          const direction = swipe > 0 ? "right" : "left";
+          onSwipe(direction, event);
+        }
       }}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
     >
-      <motion.div
-        className="relative h-full w-full"
-        style={{ background, rotate }}
-        drag="x"
-        dragConstraints={dragConstraints}
-        onDrag={handleDrag}
-        onDragEnd={handleDragEnd}
-      >
-        <motion.div
-          className="absolute left-4 top-4 z-10 rounded-full bg-red-500 p-2 text-white shadow-lg"
-          style={{ opacity }}
+      <div className="flex flex-col h-full">
+        {/* Event Image */}
+        <div 
+          className="relative h-56 bg-cover bg-center"
+          style={{ backgroundImage: `url(${getBackgroundImage()})` }}
         >
-          <X className="h-6 w-6" />
-        </motion.div>
-        <motion.div
-          className="absolute right-4 top-4 z-10 rounded-full bg-green-500 p-2 text-white shadow-lg"
-          style={{ opacity }}
-        >
-          <Check className="h-6 w-6" />
-        </motion.div>
-
-        <Card className="h-full w-full overflow-hidden">
-          <CardContent className="aspect-video relative rounded-md overflow-hidden bg-muted p-0">
-            {event.imageUrl ? (
-              <img
-                src={event.imageUrl}
-                alt={eventTitle}
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                <Calendar className="h-12 w-12 opacity-20" />
-              </div>
-            )}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {event.interests.slice(0, 3).map((interest) => (
-                  <Badge key={interest.id} variant="outline" className="bg-black/30 text-white border-none">
-                    {interest.name}
-                  </Badge>
-                ))}
-                {event.interests.length > 3 && (
-                  <Badge variant="outline" className="bg-black/30 text-white border-none">
-                    +{event.interests.length - 3} more
-                  </Badge>
-                )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
+          
+          {/* Category Label */}
+          <div className="absolute top-4 left-4">
+            <span className="bg-black/50 text-white px-4 py-1 rounded-full text-sm backdrop-blur-sm">
+              {event.interests[0]?.name || "Event"}
+            </span>
+          </div>
+        </div>
+        
+        {/* Event Info */}
+        <div className="flex-1 p-5 bg-orange-100">
+          <h3 className="text-xl font-bold mb-3">{event.title}</h3>
+          
+          <div className="space-y-3 mb-4">
+            {/* Date and Time */}
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-gray-600" />
+              <div>
+                <div className="text-gray-800">{formatDate(new Date(event.dateTime))}</div>
+                <div className="text-gray-500 text-sm">{timeUntil}</div>
               </div>
             </div>
-          </CardContent>
-          <div className="p-4">
-            <h2 className="text-lg font-semibold">{eventTitle}</h2>
-            <p className="text-sm text-muted-foreground">
-              {getLocationDisplay()}
-            </p>
             
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                {eventDate ? format(new Date(eventDate), "MMM d, yyyy") : "Date TBD"}
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                {eventDate ? format(new Date(eventDate), "h:mm a") : "Time TBD"}
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                {event.attendees.length} attending
+            {/* Location */}
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-gray-600" />
+              <div className="text-gray-800">{event.address || (event.location.city ? event.location.city : "Unknown location")}</div>
+            </div>
+            
+            {/* Attendees */}
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-gray-600" />
+              <div className="text-gray-800">
+                {event.attendees.length} attendees
+                {event.maxAttendees && ` / ${event.maxAttendees} spots`}
               </div>
             </div>
           </div>
-          <CardFooter className="flex justify-between items-center">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="rounded-full" 
-              onClick={() => handleSwipe("left")}
-            >
-              <X className="h-5 w-5 text-red-500" />
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                window.open(`/events/${event.id}`, "_blank");
-              }}
-            >
-              View Details
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="rounded-full" 
-              onClick={() => handleSwipe("right")}
-            >
-              <Heart className="h-5 w-5 text-green-500" />
-            </Button>
-          </CardFooter>
-        </Card>
-      </motion.div>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="bg-orange-100 p-4 border-t border-orange-200">
+          <Button 
+            onClick={handleViewDetails}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-full"
+          >
+            View Details
+          </Button>
+          <div className="mt-3 text-center text-xs text-gray-500">
+            Swipe right to like, left to skip
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 };
