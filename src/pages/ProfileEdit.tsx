@@ -24,6 +24,20 @@ const ProfileEdit = () => {
   const [avatar, setAvatar] = useState(user?.avatar || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Load settings from localStorage
+  useEffect(() => {
+    if (user) {
+      // Load stored values if available
+      const storedName = localStorage.getItem("userName");
+      const storedBio = localStorage.getItem("userBio");
+      const storedAvatar = localStorage.getItem("userAvatar");
+      
+      if (storedName) setName(storedName);
+      if (storedBio) setBio(storedBio);
+      if (storedAvatar) setAvatar(storedAvatar);
+    }
+  }, [user]);
+
   useEffect(() => {
     // Redirect if not logged in
     if (!user) {
@@ -46,6 +60,11 @@ const ProfileEdit = () => {
       
       updateUserProfile(updatedProfile);
       
+      // Save to localStorage for persistent memory
+      localStorage.setItem("userName", name);
+      localStorage.setItem("userBio", bio);
+      localStorage.setItem("userAvatar", avatar);
+      
       setIsSubmitting(false);
       toast({
         title: "Profile updated",
@@ -58,6 +77,8 @@ const ProfileEdit = () => {
 
   const handleAgeRangeChange = (ageRange: { min: number; max: number }) => {
     updateUserAgeRange(JSON.stringify(ageRange));
+    // Save to localStorage
+    localStorage.setItem("userAgeRange", JSON.stringify(ageRange));
   };
 
   // Get user initials for avatar fallback
@@ -82,7 +103,7 @@ const ProfileEdit = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         
-        <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
+        <h1 className="text-2xl font-bold mb-6">Settings</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar */}

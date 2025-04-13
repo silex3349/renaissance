@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import InterestSelector from "@/components/profile/InterestSelector";
 import LocationDetection from "@/components/location/LocationDetection";
 import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
-import { Settings, Search, Plus, MessageSquare, Share2, Edit } from "lucide-react";
+import { Settings, Search, Plus, MessageSquare, Edit } from "lucide-react";
 import { MOCK_EVENTS } from "@/services/mockData";
 import { Event } from "@/types";
 import EventCard from "@/components/events/EventCard";
@@ -20,12 +20,30 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<string>("saved");
   const [savedEvents, setSavedEvents] = useState<Event[]>([]);
   const navigate = useNavigate();
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+
+  useEffect(() => {
+    // Responsive layout detection
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Simulate loading saved events
     // In a real app, this would come from an API or user data
     setSavedEvents(MOCK_EVENTS.slice(0, 4) as Event[]);
   }, []);
+
+  // Save login state to localStorage
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("isLoggedIn", "true");
+    }
+  }, [user]);
 
   if (!user) {
     return (
@@ -41,6 +59,9 @@ const Profile = () => {
 
   const handleAgeRangeChange = (ageRange: { min: number; max: number }) => {
     updateUserAgeRange(JSON.stringify(ageRange));
+    
+    // Save settings to localStorage
+    localStorage.setItem("userAgeRange", JSON.stringify(ageRange));
   };
 
   // Get user initials for avatar fallback
@@ -48,17 +69,18 @@ const Profile = () => {
     if (!user.name) return "U";
     return user.name.split(" ").map(n => n[0]).join("").toUpperCase();
   };
+  
+  const goToSettings = () => {
+    navigate("/profile/edit");
+  };
 
   return (
     <div className="bg-background min-h-screen pb-20">
       {/* Header section with avatar and basic info */}
       <div className="pt-6 pb-4 px-4">
         <div className="flex justify-between items-center mb-2">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={goToSettings}>
             <Settings className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Share2 className="h-5 w-5" />
           </Button>
         </div>
         
@@ -98,9 +120,8 @@ const Profile = () => {
           
           <div className="w-full max-w-md">
             <Tabs defaultValue="saved" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="saved">Saved</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsList className="grid grid-cols-1 w-full">
+                <TabsTrigger value="saved">Saved & Watchlist</TabsTrigger>
               </TabsList>
               
               <TabsContent value="saved" className="pt-4">
@@ -111,14 +132,11 @@ const Profile = () => {
                       <Button variant="ghost" size="icon">
                         <Search className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
-                        <Plus className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                   
                   {savedEvents.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className={`grid ${isDesktop ? 'md:grid-cols-3 sm:grid-cols-2' : 'grid-cols-2'} gap-4`}>
                       {savedEvents.map(event => (
                         <div 
                           key={event.id} 
@@ -150,26 +168,6 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="settings" className="pt-4 space-y-6">
-                <Card className="p-4">
-                  <h3 className="font-medium mb-3">Interests</h3>
-                  <InterestSelector />
-                </Card>
-                
-                <Card className="p-4">
-                  <h3 className="font-medium mb-3">Age Range</h3>
-                  <AgeRangeSelector 
-                    initialAgeRange={user.ageRange} 
-                    onChange={handleAgeRangeChange} 
-                  />
-                </Card>
-                
-                <Card className="p-4">
-                  <h3 className="font-medium mb-3">Location</h3>
-                  <LocationDetection />
-                </Card>
               </TabsContent>
             </Tabs>
           </div>
