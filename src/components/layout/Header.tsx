@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -43,6 +44,7 @@ const Header = () => {
         
         {user ? (
           <div className="hidden sm:flex items-center space-x-4">
+            <NotificationCenter />
             <Link to="/profile">Profile</Link>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               Logout
@@ -59,11 +61,14 @@ const Header = () => {
         
         {user && (
           <Sheet>
-            <SheetTrigger asChild className="sm:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
+            <div className="flex items-center sm:hidden">
+              <NotificationCenter />
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+            </div>
             <SheetContent side="right">
               <div className="py-4">
                 <ul className="space-y-2">

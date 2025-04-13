@@ -1,12 +1,40 @@
-
 import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, MoreVertical, CheckCheck, Video, Mic, Image } from "lucide-react";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { 
+  Search, 
+  Plus, 
+  MoreVertical, 
+  CheckCheck, 
+  Video, 
+  Mic, 
+  Image,
+  UserPlus,
+  Users 
+} from "lucide-react";
 import { MOCK_USERS } from "@/services/mockData";
 import { motion } from "framer-motion";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatInfo {
   id: string;
@@ -31,6 +59,11 @@ interface ChatListProps {
 const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [newGroupOpen, setNewGroupOpen] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [groupName, setGroupName] = useState("");
+  const { toast } = useToast();
 
   const mockChats: ChatInfo[] = [
     {
@@ -140,17 +173,166 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
     }
   };
 
+  const handleStartChat = (userId: string) => {
+    // In a real app, this would create a new chat
+    toast({
+      title: "Chat started",
+      description: "New conversation has been created"
+    });
+    setNewChatOpen(false);
+    
+    // Simulate a new chat by selecting the first existing one
+    if (mockChats.length > 0) {
+      onSelectChat(mockChats[0].id);
+    }
+  };
+
+  const handleCreateGroup = () => {
+    if (!groupName.trim() || selectedUsers.length === 0) {
+      toast({
+        title: "Cannot create group",
+        description: "Please provide a group name and select at least one member",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Group created",
+      description: `${groupName} has been created with ${selectedUsers.length} members`
+    });
+    setNewGroupOpen(false);
+    setGroupName("");
+    setSelectedUsers([]);
+    
+    // Simulate by selecting an existing group chat
+    const groupChat = mockChats.find(chat => chat.type === "group");
+    if (groupChat) {
+      onSelectChat(groupChat.id);
+    }
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId) 
+        : [...prev, userId]
+    );
+  };
+
   return (
     <div className="h-full flex flex-col border rounded-lg overflow-hidden bg-white shadow-lg">
       {/* Header */}
       <div className="p-4 flex justify-between items-center border-b sticky top-0 bg-white z-10">
         <h2 className="text-xl font-bold">Chats</h2>
         <div className="flex items-center gap-2">
+          <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
+            <Dialog open={newGroupOpen} onOpenChange={setNewGroupOpen}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 bg-primary/10 text-primary">
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setNewChatOpen(true)}>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    <span>New Chat</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setNewGroupOpen(true)}>
+                    <Users className="h-4 w-4 mr-2" />
+                    <span>New Group</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* New Chat Dialog */}
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>New Chat</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <div className="mb-4">
+                    <Input
+                      placeholder="Search contacts..."
+                      className="mb-4"
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {MOCK_USERS.map(user => (
+                      <div 
+                        key={user.id}
+                        className="flex items-center p-2 hover:bg-muted rounded-md cursor-pointer"
+                        onClick={() => handleStartChat(user.id)}
+                      >
+                        <Avatar className="h-10 w-10 mr-3">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${user.id}`} />
+                          <AvatarFallback>{user.email.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium">{user.email}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </DialogContent>
+
+              {/* New Group Dialog */}
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Group Chat</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Group Name</label>
+                    <Input
+                      placeholder="Enter group name"
+                      value={groupName}
+                      onChange={(e) => setGroupName(e.target.value)}
+                    />
+                  </div>
+                  
+                  <label className="block text-sm font-medium mb-1">Add Members</label>
+                  <Input
+                    placeholder="Search contacts..."
+                    className="mb-4"
+                  />
+                  
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {MOCK_USERS.map(user => (
+                      <div 
+                        key={user.id}
+                        className={`flex items-center p-2 hover:bg-muted rounded-md cursor-pointer ${
+                          selectedUsers.includes(user.id) ? 'bg-muted' : ''
+                        }`}
+                        onClick={() => toggleUserSelection(user.id)}
+                      >
+                        <Avatar className="h-10 w-10 mr-3">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${user.id}`} />
+                          <AvatarFallback>{user.email.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium">{user.email}</p>
+                        </div>
+                        {selectedUsers.includes(user.id) && (
+                          <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center text-white">
+                            <CheckCheck className="h-3 w-3" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleCreateGroup}>Create Group</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </Dialog>
+          
           <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
             <MoreVertical className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 bg-primary/10 text-primary">
-            <Plus className="h-5 w-5" />
           </Button>
         </div>
       </div>
@@ -171,7 +353,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       {/* Tabs */}
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
         <div className="border-b">
-          <TabsList className="grid grid-cols-4 bg-transparent p-0 h-10">
+          <TabsList className="grid grid-cols-3 bg-transparent p-0 h-10">
             <TabsTrigger 
               value="all" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
@@ -189,12 +371,6 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
             >
               Groups
-            </TabsTrigger>
-            <TabsTrigger 
-              value="archived" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
-            >
-              Archived
             </TabsTrigger>
           </TabsList>
         </div>
@@ -254,12 +430,6 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
         <TabsContent value="groups" className="flex-1 overflow-y-auto m-0 p-0">
           <div className="flex items-center justify-center h-full">
             <p className="text-muted-foreground">No group chats</p>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="archived" className="flex-1 overflow-y-auto m-0 p-0">
-          <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">No archived chats</p>
           </div>
         </TabsContent>
       </Tabs>

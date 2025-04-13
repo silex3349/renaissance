@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   SendHorizontal, 
-  Image, 
+  Image as ImageIcon, 
   Paperclip, 
   Mic, 
   Phone, 
@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { MOCK_USERS } from "@/services/mockData";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
+import { getAvatarColor, formatMessageTime } from "@/utils/chatUtils";
 
 // Mock chat data structure
 interface ChatMessage {
@@ -36,14 +38,33 @@ interface GroupChatProps {
 
 const GroupChat = ({ groupId }: GroupChatProps) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [activeTab, setActiveTab] = useState("chats");
+  const [chatName, setChatName] = useState("Group Chat");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Simulate loading existing messages for this group
   useEffect(() => {
-    // In a real app, we would fetch messages from the backend
+    // In a real app, we would fetch messages from the backend based on groupId
+    
+    // For demonstration, create different names based on groupId
+    const chatNames = {
+      "chat1": "Sarah Johnson",
+      "chat2": "Photography Club",
+      "chat3": "James Wilson",
+      "chat4": "Weekend Hiking",
+      "chat5": "Emma Thompson"
+    };
+    
+    // Set chat name based on groupId
+    if (groupId in chatNames) {
+      setChatName(chatNames[groupId as keyof typeof chatNames]);
+    } else {
+      setChatName("Group Chat");
+    }
+    
     const mockMessages: ChatMessage[] = [
       {
         id: "msg1",
@@ -105,23 +126,46 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
     setInputValue("");
   };
 
-  const formatMessageTime = (date: Date) => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (date.toDateString() === today.toDateString()) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return `Yesterday, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else {
-      return date.toLocaleDateString([], {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    }
+  const handleAttachment = () => {
+    toast({
+      title: "Attachment",
+      description: "Attachment feature clicked"
+    });
+  };
+
+  const handleEmoji = () => {
+    toast({
+      title: "Emoji",
+      description: "Emoji selector opened"
+    });
+  };
+
+  const handleVoiceMessage = () => {
+    toast({
+      title: "Voice Message",
+      description: "Voice message recording started"
+    });
+  };
+
+  const handleVideoCall = () => {
+    toast({
+      title: "Video Call",
+      description: "Starting video call with " + chatName
+    });
+  };
+
+  const handleAudioCall = () => {
+    toast({
+      title: "Audio Call",
+      description: "Starting audio call with " + chatName
+    });
+  };
+
+  const handleSearch = () => {
+    toast({
+      title: "Search",
+      description: "Searching in conversation"
+    });
   };
 
   const getUserById = (userId: string) => {
@@ -152,10 +196,12 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border-2 border-primary/20">
             <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${groupId}`} />
-            <AvatarFallback>GP</AvatarFallback>
+            <AvatarFallback style={{ backgroundColor: getAvatarColor(chatName) }}>
+              {chatName.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-semibold text-base">Group Chat</h3>
+            <h3 className="font-semibold text-base">{chatName}</h3>
             <p className="text-xs text-muted-foreground">
               {messages.length > 0 ? `${messages.length} messages` : "No messages yet"}
             </p>
@@ -163,13 +209,28 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full h-9 w-9"
+            onClick={handleAudioCall}
+          >
             <Phone className="h-5 w-5 text-primary" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full h-9 w-9"
+            onClick={handleVideoCall}
+          >
             <Video className="h-5 w-5 text-primary" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full h-9 w-9"
+            onClick={handleSearch}
+          >
             <Search className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
@@ -299,6 +360,7 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
             variant="ghost" 
             size="icon" 
             className="rounded-full h-9 w-9 flex-shrink-0"
+            onClick={handleEmoji}
           >
             <SmilePlus className="h-5 w-5" />
           </Button>
@@ -308,6 +370,7 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
             variant="ghost" 
             size="icon" 
             className="rounded-full h-9 w-9 flex-shrink-0"
+            onClick={handleAttachment}
           >
             <Paperclip className="h-5 w-5" />
           </Button>
@@ -325,6 +388,7 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
             variant="ghost" 
             size="icon" 
             className="rounded-full h-9 w-9 flex-shrink-0"
+            onClick={handleVoiceMessage}
           >
             <Mic className="h-5 w-5" />
           </Button>
