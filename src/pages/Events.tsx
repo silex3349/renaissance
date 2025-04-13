@@ -1,17 +1,16 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { MOCK_EVENTS, MOCK_GROUPS, MOCK_USERS } from "@/services/mockData";
+import { MOCK_EVENTS, MOCK_GROUPS } from "@/services/mockData";
 import EventDetail from "@/components/events/EventDetail";
 import EventList from "@/components/events/EventList";
 import GroupList from "@/components/groups/GroupList";
@@ -19,16 +18,19 @@ import GroupDetail from "@/components/groups/GroupDetail";
 import SwipeCard from "@/components/matching/SwipeCard";
 import CreateGroupDialog from "@/components/groups/CreateGroupDialog";
 import LocationDetection from "@/components/location/LocationDetection";
-import { RefreshCw, Filter, Search, Plus, MapPin, Calendar, Users, Home, MessageSquare } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { RefreshCw, Filter, Search, Plus, MapPin, Calendar, Users } from "lucide-react";
 import { Event, Group, User } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { AnimatePresence, motion } from "framer-motion";
+import MapView from "@/components/events/MapView";
+import CreateEventForm from "@/components/events/CreateEventForm";
 
 const Events = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   // State for the main view mode
   const [viewMode, setViewMode] = useState<"list" | "discover" | "groups">("list");
@@ -41,8 +43,13 @@ const Events = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCreateEventSheet, setShowCreateEventSheet] = useState(false);
   const [locationPromptVisible, setLocationPromptVisible] = useState(false);
   const [filterOnlyNearby, setFilterOnlyNearby] = useState(false);
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  
+  // Map view state
+  const [showMapView, setShowMapView] = useState(false);
   
   // State for discover/swipe mode
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -162,6 +169,21 @@ const Events = () => {
     }, 800);
   };
   
+  // Focus search input when pressing '/' key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current.focus();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+  
   // Handle location detection
   const handleLocationDetected = () => {
     setLocationDetected(true);
@@ -194,6 +216,16 @@ const Events = () => {
       title: "Events refreshed",
       description: "We've found some new events for you to explore",
     });
+  };
+  
+  // Handle search functionality
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+  
+  // Toggle map view for nearby events
+  const toggleMapView = () => {
+    setShowMapView(!showMapView);
   };
   
   // Check if location prompt should be shown for nearby events
@@ -238,6 +270,11 @@ const Events = () => {
     );
   }
   
+  // Render create event sheet
+  if (showCreateEventSheet) {
+    return <CreateEventForm onClose={() => setShowCreateEventSheet(false)} />;
+  }
+  
   return (
     <div className="min-h-screen pb-20">
       <div className="pt-4 px-4">
@@ -271,62 +308,69 @@ const Events = () => {
           </div>
         )}
         
-        {/* Filter Button - Top right */}
-        <div className="absolute top-4 right-4">
-          <Sheet>
-            <Button variant="outline" size="icon" className="rounded-full" asChild>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Filter</SheetTitle>
-                  <SheetDescription>
-                    Customize your discovery experience
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="py-6 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label htmlFor="nearby-filter">Show only nearby</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Filter items near your current location
-                      </p>
-                    </div>
-                    <Switch 
-                      id="nearby-filter" 
-                      checked={filterOnlyNearby} 
-                      onCheckedChange={(checked) => {
-                        setFilterOnlyNearby(checked);
-                        if (viewMode === "discover") loadEvents();
-                      }} 
-                    />
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-2">
-                    <Label>Update Your Location</Label>
-                    <LocationDetection onComplete={handleLocationDetected} />
-                  </div>
+        {/* Filter Dialog */}
+        <Sheet open={showFilterSheet} onOpenChange={setShowFilterSheet}>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Filter Options</SheetTitle>
+              <SheetDescription>
+                Customize your discovery experience
+              </SheetDescription>
+            </SheetHeader>
+            <div className="py-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="nearby-filter">Show only nearby</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Filter items near your current location
+                  </p>
                 </div>
-              </SheetContent>
-            </Button>
-          </Sheet>
-          
-          {/* Create Button */}
-          <Button className="ml-2 rounded-full" onClick={() => viewMode === "groups" ? setShowCreateDialog(true) : navigate("/events/create")}>
-            <Plus className="h-5 w-5" />
-          </Button>
-        </div>
+                <Switch 
+                  id="nearby-filter" 
+                  checked={filterOnlyNearby} 
+                  onCheckedChange={(checked) => {
+                    setFilterOnlyNearby(checked);
+                    if (viewMode === "discover") loadEvents();
+                  }} 
+                />
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2">
+                <Label>Update Your Location</Label>
+                <LocationDetection onComplete={handleLocationDetected} />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+        
+        {/* Filter Button - Top right */}
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="absolute top-4 right-4 rounded-full" 
+          onClick={() => setShowFilterSheet(true)}
+        >
+          <Filter className="h-5 w-5" />
+        </Button>
         
         {/* Search Bar */}
         {viewMode !== "discover" && (
           <div className="relative mb-4 mt-6">
             <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
             <Input
+              ref={searchInputRef}
               placeholder={`Search ${viewMode === "groups" ? "groups" : "events"}...`}
               className="pl-10 py-6 rounded-xl bg-gray-50 border-gray-200"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearch}
             />
+            {!searchTerm && (
+              <kbd className="absolute right-3 top-3 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-50">
+                /
+              </kbd>
+            )}
           </div>
         )}
         
@@ -342,15 +386,21 @@ const Events = () => {
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">
-                <EventList 
-                  events={filteredEvents} 
-                  title={
-                    activeTab === "all" ? "All Events" :
-                    activeTab === "joined" ? "Your Events" :
-                    activeTab === "upcoming" ? "Upcoming Events" :
-                    "Events Near You"
-                  }
-                />
+                {activeTab === "nearby" && showMapView ? (
+                  <MapView events={filteredEvents} />
+                ) : (
+                  <EventList 
+                    events={filteredEvents} 
+                    title={
+                      activeTab === "all" ? "All Events" :
+                      activeTab === "joined" ? "Your Events" :
+                      activeTab === "upcoming" ? "Upcoming Events" :
+                      "Events Near You"
+                    }
+                    showMap={showMapView}
+                    onToggleMap={activeTab === "nearby" ? toggleMapView : undefined}
+                  />
+                )}
               </TabsContent>
             </Tabs>
           </>
@@ -443,35 +493,15 @@ const Events = () => {
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
         />
-      </div>
-      
-      {/* Bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2">
-        <div className="flex justify-around items-center">
-          <a href="/" className="flex flex-col items-center p-2 text-gray-500 hover:text-black">
-            <Home className="h-6 w-6" />
-            <span className="text-xs mt-1">Home</span>
-          </a>
-          <a href="/events" className="flex flex-col items-center p-2 text-black">
-            <Calendar className="h-6 w-6" />
-            <span className="text-xs mt-1">Events</span>
-          </a>
-          <a href="/chats" className="flex flex-col items-center p-2 text-gray-500 hover:text-black">
-            <MessageSquare className="h-6 w-6" />
-            <span className="text-xs mt-1">Messages</span>
-          </a>
-          <a href="/profile" className="flex flex-col items-center p-2 text-gray-500 hover:text-black">
-            {user ? (
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={user.avatar} alt={user.name || "User"} />
-                <AvatarFallback className="text-xs">{user.name ? user.name.charAt(0).toUpperCase() : "U"}</AvatarFallback>
-              </Avatar>
-            ) : (
-              <div className="h-6 w-6 rounded-full bg-gray-200"></div>
-            )}
-            <span className="text-xs mt-1">Profile</span>
-          </a>
-        </div>
+        
+        {/* Fixed Create Button at bottom-left */}
+        <Button 
+          className="fixed left-4 bottom-20 rounded-full shadow-lg z-20"
+          onClick={() => viewMode === "groups" ? setShowCreateDialog(true) : setShowCreateEventSheet(true)}
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          {viewMode === "groups" ? "Create Group" : "Create Event"}
+        </Button>
       </div>
     </div>
   );

@@ -4,16 +4,27 @@ import EventCard from "./EventCard";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface EventListProps {
   events: Event[];
   title?: string;
   description?: string;
+  showMap?: boolean;
+  onToggleMap?: () => void;
 }
 
-const EventList = ({ events, title = "Events", description }: EventListProps) => {
+const EventList = ({ 
+  events, 
+  title = "Events", 
+  description,
+  showMap,
+  onToggleMap 
+}: EventListProps) => {
+  const navigate = useNavigate();
   const { user, joinEvent } = useAuth();
   const { toast } = useToast();
   const [joiningEvent, setJoiningEvent] = useState<string | null>(null);
@@ -53,19 +64,34 @@ const EventList = ({ events, title = "Events", description }: EventListProps) =>
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-2xl font-medium">{title}</h3>
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-medium">{title}</h3>
+            
+            {user?.location && title === "Events Near You" && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {user.location.city || "Current location"}
+              </Badge>
+            )}
+          </div>
           
-          {user?.location && title === "Events Near You" && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              {user.location.city || "Current location"}
-            </Badge>
-          )}
+          {description && <p className="text-muted-foreground">{description}</p>}
         </div>
         
-        {description && <p className="text-muted-foreground">{description}</p>}
+        {/* Add Map toggle button for Nearby Events */}
+        {title === "Events Near You" && onToggleMap && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-1"
+            onClick={onToggleMap}
+          >
+            <MapPin className="h-4 w-4" />
+            {showMap ? "List View" : "Map View"}
+          </Button>
+        )}
       </div>
       
       <div className="grid grid-cols-1 gap-6">

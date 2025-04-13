@@ -37,7 +37,8 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
     ? event.attendees.length >= event.maxAttendees 
     : false;
     
-  const handleJoin = () => {
+  const handleJoin = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (onJoin) {
       setIsJoining(true);
       // Simulate API delay
@@ -91,6 +92,7 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
           <button 
             className="absolute top-4 right-4 bg-gray-200/80 rounded-full p-2"
             onClick={toggleBookmark}
+            aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
           >
             {isBookmarked ? 
               <Bookmark className="h-5 w-5 text-gray-700" /> : 
@@ -104,37 +106,61 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
           <h3 className="text-xl font-bold mb-3">{event.title}</h3>
           
           <div className="space-y-2 mb-4">
-            {/* Date and Time */}
-            <div className="flex items-center gap-2">
+            {/* Date and Time - clickable */}
+            <button 
+              className="flex items-center gap-2 w-full text-left hover:bg-orange-200/50 p-1 rounded-md transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Could open a calendar view or filter by this date
+                toast({
+                  title: "Date selected",
+                  description: `You selected ${formatDate(new Date(event.dateTime))}`
+                });
+              }}
+            >
               <Calendar className="h-5 w-5 text-gray-600" />
               <div>
                 <div className="text-gray-800">{formatDate(new Date(event.dateTime))}</div>
                 <div className="text-gray-500 text-sm">{timeUntil}</div>
               </div>
-            </div>
+            </button>
             
-            {/* Location */}
-            <div className="flex items-center gap-2">
+            {/* Location - clickable */}
+            <button 
+              className="flex items-center gap-2 w-full text-left hover:bg-orange-200/50 p-1 rounded-md transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Could open a map view or filter by this location
+                toast({
+                  title: "Location selected",
+                  description: `You selected ${event.location.city}`
+                });
+              }}
+            >
               <MapPin className="h-5 w-5 text-gray-600" />
               <div className="text-gray-800">{event.address || (event.location.city ? event.location.city : "Unknown location")}</div>
-            </div>
+            </button>
             
-            {/* Attendees */}
-            <div className="flex items-center gap-2">
+            {/* Attendees - clickable */}
+            <button 
+              className="flex items-center gap-2 w-full text-left hover:bg-orange-200/50 p-1 rounded-md transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Could open attendee list
+                navigate(`/events/${event.id}#attendees`);
+              }}
+            >
               <Users className="h-5 w-5 text-gray-600" />
               <div className="text-gray-800">
                 {event.attendees.length} attendees
                 {event.maxAttendees && ` / ${event.maxAttendees} spots`}
               </div>
-            </div>
+            </button>
           </div>
           
           {/* Join Button */}
           <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleJoin();
-            }}
+            onClick={handleJoin}
             className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-full"
             disabled={isFullyBooked || isJoining}
           >

@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,6 +19,7 @@ const Profile = () => {
   const { user, updateUserAgeRange } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("saved");
   const [savedEvents, setSavedEvents] = useState<Event[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Simulate loading saved events
@@ -85,7 +87,11 @@ const Profile = () => {
             </div>
           </div>
           
-          <Button variant="outline" className="mb-6" onClick={() => window.location.href = "/profile/edit"}>
+          <Button 
+            variant="outline" 
+            className="mb-6" 
+            onClick={() => navigate("/profile/edit")}
+          >
             <Edit className="h-4 w-4 mr-2" />
             Edit Profile
           </Button>
@@ -114,7 +120,11 @@ const Profile = () => {
                   {savedEvents.length > 0 ? (
                     <div className="grid grid-cols-2 gap-4">
                       {savedEvents.map(event => (
-                        <div key={event.id} className="aspect-square overflow-hidden rounded-xl relative group">
+                        <div 
+                          key={event.id} 
+                          className="aspect-square overflow-hidden rounded-xl relative group cursor-pointer"
+                          onClick={() => navigate(`/events/${event.id}`)}
+                        >
                           <div 
                             className="w-full h-full bg-cover bg-center"
                             style={{ 
@@ -134,7 +144,7 @@ const Profile = () => {
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground">No saved events yet</p>
-                      <Button variant="outline" className="mt-4" onClick={() => window.location.href = "/events"}>
+                      <Button variant="outline" className="mt-4" onClick={() => navigate("/events")}>
                         Discover Events
                       </Button>
                     </div>

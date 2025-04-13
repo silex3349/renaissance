@@ -9,6 +9,7 @@ import Layout from "@/components/layout/Layout";
 import Events from "@/pages/Events";
 import Auth from "@/pages/Auth";
 import Profile from "@/pages/Profile";
+import ProfileEdit from "@/pages/ProfileEdit";
 import Chats from "@/pages/Chats";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
@@ -43,6 +44,7 @@ function App() {
                 <Route index element={<Events />} />
                 <Route path="auth" element={<Auth />} />
                 <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
                 <Route path="events/:id" element={<Events />} />
                 <Route path="events/create" element={<ProtectedRoute><Events /></ProtectedRoute>} />
                 <Route path="chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
