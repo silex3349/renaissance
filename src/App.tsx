@@ -6,10 +6,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import Layout from "@/components/layout/Layout";
-import Home from "@/pages/Home";
+import Events from "@/pages/Events";
 import Auth from "@/pages/Auth";
 import Profile from "@/pages/Profile";
-import Events from "@/pages/Events";
 import Chats from "@/pages/Chats";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
@@ -40,10 +39,10 @@ function App() {
           <Router>
             <Routes>
               <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
+                {/* Merged Home and Events into a single route */}
+                <Route index element={<Events />} />
                 <Route path="auth" element={<Auth />} />
                 <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="events" element={<Events />} />
                 <Route path="events/:id" element={<Events />} />
                 <Route path="events/create" element={<ProtectedRoute><Events /></ProtectedRoute>} />
                 <Route path="chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />

@@ -68,7 +68,7 @@ const EventList = ({ events, title = "Events", description }: EventListProps) =>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
       
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-6">
         {events.map((event) => (
           <EventCard 
             key={event.id} 
