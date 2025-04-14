@@ -1,9 +1,10 @@
 
-import { useState } from "react";
-import { Heart, X } from "lucide-react";
+import React from "react";
 import { User } from "@/types";
-import { motion, PanInfo, useAnimation } from "framer-motion";
-import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { X, Heart, MapPin } from "lucide-react";
 
 interface SwipeUserCardProps {
   user: User;
@@ -11,190 +12,110 @@ interface SwipeUserCardProps {
   isActive: boolean;
 }
 
-// Helper function to find common interests between two users
-const findCommonInterests = (user1: User, user2: User) => {
-  if (!user1.interests || !user2.interests) return [];
-  
-  return user1.interests.filter(interest1 => 
-    user2.interests.some(interest2 => interest1.id === interest2.id)
-  );
-};
-
-const SwipeUserCard = ({ user, onSwipe, isActive }: SwipeUserCardProps) => {
-  const controls = useAnimation();
-  const { toast } = useToast();
-  const [exitX, setExitX] = useState(0);
-  const [direction, setDirection] = useState<"left" | "right" | null>(null);
-
-  // Safely access user properties with null checks
-  const userInitial = user && user.email ? user.email[0].toUpperCase() : "?";
-  const userInterests = user && user.interests ? user.interests : [];
-  const userAgeRange = user && user.ageRange ? `${user.ageRange.min}-${user.ageRange.max}` : "Not specified";
-  const userLocation = user && user.location && user.location.city ? user.location.city : "Unknown location";
-
+const SwipeUserCard: React.FC<SwipeUserCardProps> = ({
+  user,
+  onSwipe,
+  isActive,
+}) => {
+  // Detect swipe gesture
   const handleDragEnd = (
-    _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    e: MouseEvent | TouchEvent | PointerEvent,
+    info: { offset: { x: number } }
   ) => {
-    const threshold = 100;
-    
+    if (!isActive) return;
+
+    const threshold = 100; // px to consider a swipe
+
     if (info.offset.x > threshold) {
-      // Swiped right - like
-      setExitX(window.innerWidth);
-      setDirection("right");
-      controls.start({ x: window.innerWidth, opacity: 0 });
       onSwipe("right", user);
     } else if (info.offset.x < -threshold) {
-      // Swiped left - pass
-      setExitX(-window.innerWidth);
-      setDirection("left");
-      controls.start({ x: -window.innerWidth, opacity: 0 });
       onSwipe("left", user);
-    } else {
-      // Not enough swipe distance, return to center
-      controls.start({ x: 0, opacity: 1 });
     }
-  };
-
-  const handleDrag = (_: any, info: PanInfo) => {
-    // Calculate rotation based on drag distance
-    const rotate = info.offset.x * 0.05;
-    controls.start({ 
-      x: info.offset.x, 
-      rotate: rotate, 
-      opacity: 1 - (Math.abs(info.offset.x) / (window.innerWidth / 2))
-    });
-  };
-
-  // Styles and animations for the swipe action buttons
-  const buttonVariants = {
-    initial: { scale: 0.8, opacity: 0.5 },
-    hover: { scale: 1, opacity: 1 }
   };
 
   return (
     <motion.div
-      className={`absolute top-0 left-0 right-0 h-full w-full cursor-grab active:cursor-grabbing ${!isActive && "pointer-events-none"}`}
+      className={`absolute top-0 left-0 w-full h-full cursor-pointer ${
+        isActive ? "z-10" : "z-0"
+      }`}
       drag={isActive ? "x" : false}
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
-      onDrag={handleDrag}
-      animate={controls}
-      initial={{ x: 0, opacity: isActive ? 1 : 0, scale: isActive ? 1 : 0.9, rotate: 0 }}
-      exit={{ 
-        x: exitX, 
-        opacity: 0,
-        transition: { duration: 0.2 }
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ 
+        scale: isActive ? 1 : 0.92, 
+        opacity: isActive ? 1 : 0.6,
+        rotateZ: isActive ? 0 : -2
       }}
-      transition={{ type: "spring", damping: 50, stiffness: 500 }}
-      style={{ zIndex: isActive ? 10 : 0 }}
+      exit={{ scale: 0.8, opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      whileTap={{ scale: 0.98 }}
     >
-      <div className="w-full h-full bg-card rounded-xl overflow-hidden shadow-lg flex flex-col">
-        {/* User profile section - minimal, no photos */}
-        <div className="p-8 flex flex-col items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 h-2/5">
-          <div className="h-24 w-24 bg-primary/30 rounded-full flex items-center justify-center mb-4">
-            <span className="text-4xl text-primary">
-              {userInitial}
-            </span>
-          </div>
-        </div>
-        
-        {/* User interests */}
-        <div className="p-5 flex-grow flex flex-col">
-          <h2 className="text-xl font-semibold mb-4 text-center">Common Interests</h2>
+      <Card className="w-full h-full overflow-hidden rounded-2xl border-0 shadow-xl">
+        <div 
+          className="w-full h-full bg-cover bg-center relative"
+          style={{ 
+            backgroundImage: `url(${user.profileImageUrl})`,
+            backgroundSize: 'cover'
+          }}
+        >
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
           
-          {/* Interest tags */}
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {userInterests.map(interest => (
-              <span 
-                key={interest.id}
-                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
-              >
-                {interest.name}
-              </span>
-            ))}
-            {userInterests.length === 0 && (
-              <span className="text-muted-foreground text-sm">No interests specified</span>
+          {/* Content */}
+          <CardContent className="absolute bottom-0 left-0 right-0 p-5 text-white">
+            <div className="mb-3">
+              <div className="flex items-end gap-2">
+                <h2 className="text-3xl font-bold">{user.name.split(' ')[0]}</h2>
+                {user.location && (
+                  <div className="flex items-center gap-1 text-sm text-white/80">
+                    <MapPin size={14} />
+                    {user.location.city}
+                  </div>
+                )}
+              </div>
+              <p className="text-white/80 line-clamp-2 mt-1">{user.bio}</p>
+            </div>
+            
+            {user.interests && user.interests.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm mb-2 text-white/70">Interests</p>
+                <div className="flex flex-wrap gap-2">
+                  {user.interests.map((interest) => (
+                    <Badge key={interest.id} variant="secondary" className="bg-white/20 text-white border-0">
+                      {interest.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
-          </div>
-          
-          <div className="text-center text-muted-foreground mb-2">
-            Age range: {userAgeRange}
-          </div>
-          
-          <div className="text-center text-muted-foreground mb-4">
-            Location: {userLocation}
-          </div>
-          
-          <div className="mt-auto text-center text-muted-foreground">
-            <p>Swipe right to connect, left to pass</p>
-          </div>
+            
+            {isActive && (
+              <div className="flex justify-between mt-6">
+                <button 
+                  className="bg-white/20 hover:bg-white/30 transition-colors rounded-full p-3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSwipe("left", user);
+                  }}
+                >
+                  <X size={24} className="text-white" />
+                </button>
+                
+                <button 
+                  className="bg-white/20 hover:bg-white/30 transition-colors rounded-full p-3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSwipe("right", user);
+                  }}
+                >
+                  <Heart size={24} className="text-white" />
+                </button>
+              </div>
+            )}
+          </CardContent>
         </div>
-      </div>
-      
-      {/* Overlays for swipe directions */}
-      <motion.div 
-        className="absolute inset-0 bg-green-500/30 flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: direction === "right" ? 0.7 : 0 }}
-      >
-        <Heart className="w-24 h-24 text-white" />
-      </motion.div>
-      
-      <motion.div 
-        className="absolute inset-0 bg-red-500/30 flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: direction === "left" ? 0.7 : 0 }}
-      >
-        <X className="w-24 h-24 text-white" />
-      </motion.div>
-      
-      {/* Swipe action buttons */}
-      {isActive && (
-        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-10 pointer-events-none">
-          <motion.button
-            className="w-16 h-16 bg-white shadow-lg rounded-full flex items-center justify-center pointer-events-auto"
-            onClick={() => {
-              controls.start({ 
-                x: -window.innerWidth, 
-                opacity: 0,
-                transition: { duration: 0.3 }
-              });
-              setDirection("left");
-              onSwipe("left", user);
-            }}
-            variants={buttonVariants}
-            initial="initial"
-            whileHover="hover"
-            transition={{ type: "spring", stiffness: 500 }}
-          >
-            <X className="w-8 h-8 text-red-500" />
-          </motion.button>
-          
-          <motion.button
-            className="w-16 h-16 bg-white shadow-lg rounded-full flex items-center justify-center pointer-events-auto"
-            onClick={() => {
-              controls.start({ 
-                x: window.innerWidth, 
-                opacity: 0,
-                transition: { duration: 0.3 }
-              });
-              setDirection("right");
-              onSwipe("right", user);
-              toast({
-                title: "Match request sent!",
-                description: "You'll be notified if they match with you too",
-              });
-            }}
-            variants={buttonVariants}
-            initial="initial"
-            whileHover="hover"
-            transition={{ type: "spring", stiffness: 500 }}
-          >
-            <Heart className="w-8 h-8 text-green-500" />
-          </motion.button>
-        </div>
-      )}
+      </Card>
     </motion.div>
   );
 };

@@ -5,6 +5,7 @@ import SwipeUserCard from "@/components/matching/SwipeUserCard";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { User } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 // Temporary mock implementation of getAllUsers until the real API is available
 const getAllUsers = async (): Promise<User[]> => {
@@ -66,6 +67,7 @@ const getAllUsers = async (): Promise<User[]> => {
 
 const Discover = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [errorUsers, setErrorUsers] = useState<Error | null>(null);
@@ -99,44 +101,74 @@ const Discover = () => {
 
     // Log the swipe (for demo purposes)
     console.log(`Swiped ${direction} on user ${swipedUser.id}`);
+    
+    if (direction === "right") {
+      // Navigate to user profile on right swipe (like)
+      navigate(`/profile/${swipedUser.id}`);
+    }
   };
 
   const handleReload = () => {
     setDisplayedUserIds([]);
   };
 
+  const handleUserCardClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
+  };
+
   return (
-    <div className="bg-purple-900 min-h-screen">
-      <div className="renaissance-container py-12">
-        <h1 className="discover-heading">Discover New Connections</h1>
-        <p className="discover-subheading">
-          Explore profiles and find people who share your interests.
-        </p>
+    <div className="bg-gradient-to-b from-purple-900 to-purple-800 min-h-screen flex flex-col">
+      <div className="max-w-md mx-auto w-full py-6 px-4 flex flex-1 flex-col">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-white">Discover</h1>
+          <p className="text-purple-200">
+            Find people with similar interests
+          </p>
+        </div>
 
         {isLoadingUsers ? (
-          <div className="text-center text-white">Loading profiles...</div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center text-white">
+              <RefreshCw className="animate-spin h-10 w-10 mx-auto mb-4" />
+              <p>Finding people for you...</p>
+            </div>
+          </div>
         ) : errorUsers ? (
-          <div className="text-center text-red-500">
-            Error: {errorUsers.message}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center text-red-300 bg-red-900/30 p-4 rounded-lg">
+              <p>Error: {errorUsers.message}</p>
+              <Button onClick={handleReload} variant="outline" className="mt-4">
+                Try Again
+              </Button>
+            </div>
           </div>
         ) : filteredUsers.length > 0 ? (
-          <div className="flex flex-col items-center">
-            {filteredUsers.map((user, index) => (
-              <SwipeUserCard
-                key={user.id}
-                user={user}
-                onSwipe={handleSwipe}
-                isActive={index === 0}
-              />
-            ))}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="relative w-full h-[500px] max-h-[70vh]">
+              {filteredUsers.slice(0, 3).map((user, index) => (
+                <div 
+                  key={user.id} 
+                  className="absolute top-0 left-0 w-full h-full"
+                  onClick={() => handleUserCardClick(user.id)}
+                >
+                  <SwipeUserCard
+                    user={user}
+                    onSwipe={handleSwipe}
+                    isActive={index === 0}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="text-center text-white">
-            <p>No more profiles to display.</p>
-            <Button onClick={handleReload}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reload Profiles
-            </Button>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center text-white">
+              <p className="mb-4">No more profiles to display.</p>
+              <Button onClick={handleReload} variant="outline">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reload Profiles
+              </Button>
+            </div>
           </div>
         )}
       </div>
