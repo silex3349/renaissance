@@ -4,121 +4,101 @@ export const INTERESTS: Interest[] = [
   {
     id: "photography",
     name: "Photography",
-    icon: "camera",
     category: "Arts",
   },
   {
     id: "travel",
     name: "Travel",
-    icon: "plane",
     category: "Adventure",
   },
   {
     id: "hiking",
     name: "Hiking",
-    icon: "mountain",
     category: "Outdoors",
   },
   {
     id: "nature",
     name: "Nature",
-    icon: "tree",
     category: "Outdoors",
   },
   {
     id: "technology",
     name: "Technology",
-    icon: "code",
     category: "Professional",
   },
   {
     id: "programming",
     name: "Programming",
-    icon: "laptop",
     category: "Education",
   },
   {
     id: "cooking",
     name: "Cooking",
-    icon: "utensils",
     category: "Food",
   },
   {
     id: "food",
     name: "Dining Out",
-    icon: "restaurant",
     category: "Food",
   },
   {
     id: "music",
     name: "Music",
-    icon: "music",
     category: "Arts",
   },
   {
     id: "movies",
     name: "Movies",
-    icon: "film",
     category: "Arts",
   },
   {
     id: "reading",
     name: "Reading",
-    icon: "book",
     category: "Education",
   },
   {
     id: "writing",
     name: "Writing",
-    icon: "edit",
     category: "Arts",
   },
   {
     id: "sports",
     name: "Sports",
-    icon: "football",
     category: "Fitness",
   },
   {
     id: "fitness",
     name: "Fitness",
-    icon: "heart",
     category: "Fitness",
   },
   {
     id: "yoga",
     name: "Yoga",
-    icon: "sun",
     category: "Fitness",
   },
   {
     id: "meditation",
     name: "Meditation",
-    icon: "cloud",
     category: "Wellness",
   },
   {
     id: "art",
     name: "Art",
-    icon: "paint-brush",
     category: "Arts",
   },
   {
     id: "dance",
     name: "Dance",
-    icon: "move",
     category: "Arts",
   },
   {
     id: "fashion",
     name: "Fashion",
-    icon: "shopping-bag",
     category: "Lifestyle",
   },
   {
     id: "gaming",
     name: "Gaming",
-    icon: "gamepad",
     category: "Entertainment",
   },
 ];
@@ -149,6 +129,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_1", "event_3", "event_4"],
     matchedUsers: ["user_2", "user_3"],
+    joinedGroups: ["group_1", "group_3"],
     createdAt: new Date("2022-01-01"),
   },
   {
@@ -163,6 +144,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_2", "event_5"],
     matchedUsers: ["user_1", "user_4"],
+    joinedGroups: ["group_1", "group_2"],
     createdAt: new Date("2022-02-15"),
   },
   {
@@ -177,6 +159,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_1", "event_6"],
     matchedUsers: ["user_1", "user_5"],
+    joinedGroups: ["group_1", "group_4"],
     createdAt: new Date("2022-03-20"),
   },
   {
@@ -191,6 +174,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_2", "event_7"],
     matchedUsers: ["user_2", "user_6"],
+    joinedGroups: ["group_2", "group_4"],
     createdAt: new Date("2022-04-10"),
   },
   {
@@ -205,6 +189,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_3", "event_8"],
     matchedUsers: ["user_3", "user_7"],
+    joinedGroups: ["group_3"],
     createdAt: new Date("2022-05-01"),
   },
   {
@@ -219,6 +204,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_4", "event_9"],
     matchedUsers: ["user_4", "user_8"],
+    joinedGroups: [],
     createdAt: new Date("2022-06-05"),
   },
   {
@@ -233,6 +219,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_5", "event_10"],
     matchedUsers: ["user_5", "user_9"],
+    joinedGroups: [],
     createdAt: new Date("2022-07-12"),
   },
   {
@@ -247,6 +234,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_6"],
     matchedUsers: ["user_6", "user_10"],
+    joinedGroups: [],
     createdAt: new Date("2022-08-18"),
   },
   {
@@ -261,6 +249,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_7"],
     matchedUsers: ["user_7"],
+    joinedGroups: [],
     createdAt: new Date("2022-09-22"),
   },
   {
@@ -275,6 +264,7 @@ export const MOCK_USERS: User[] = [
     },
     joinedEvents: ["event_8"],
     matchedUsers: ["user_8"],
+    joinedGroups: [],
     createdAt: new Date("2022-10-01"),
   },
 ];
@@ -399,11 +389,14 @@ export const MOCK_EVENTS = [
     imageUrl: "/placeholder.svg",
     maxAttendees: 20,
     groupId: "group_1",
-    createdAt: new Date("2023-06-15")
+    createdAt: new Date("2023-06-15"),
+    isExclusive: false,
+    pendingRequests: []
   },
   {
     id: "event_2",
     title: "Mountain Trail Hike",
+    name: "Mountain Trail Hike",
     description: "A moderate 5-mile hike with beautiful views. Perfect for beginners and intermediate hikers alike.",
     interests: [
       {
@@ -420,15 +413,22 @@ export const MOCK_EVENTS = [
     },
     address: "Mount Tamalpais State Park",
     dateTime: new Date("2023-07-20T08:00:00"),
+    startTime: new Date("2023-07-20T08:00:00"),
+    endTime: new Date("2023-07-20T12:00:00"),
     organizer: "user_2",
+    creator: "user_2",
     attendees: ["user_2", "user_4"],
     imageUrl: "/placeholder.svg",
     maxAttendees: 15,
-    groupId: "group_2"
+    groupId: "group_2",
+    createdAt: new Date("2023-06-20"),
+    isExclusive: true,
+    pendingRequests: ["user_5"]
   },
   {
     id: "event_3",
     title: "Sunset Photography Session",
+    name: "Sunset Photography Session",
     description: "Capture the golden hour with fellow photographers at a scenic overlook.",
     interests: [
       {
@@ -445,11 +445,17 @@ export const MOCK_EVENTS = [
     },
     address: "Golden Gate Bridge Vista Point",
     dateTime: new Date("2023-07-22T19:00:00"),
+    startTime: new Date("2023-07-22T19:00:00"),
+    endTime: new Date("2023-07-22T21:00:00"),
     organizer: "user_1",
+    creator: "user_1",
     attendees: ["user_1", "user_3"],
     imageUrl: "/placeholder.svg",
     maxAttendees: 10,
-    groupId: "group_1"
+    groupId: "group_1",
+    createdAt: new Date("2023-06-22"),
+    isExclusive: false,
+    pendingRequests: []
   },
   {
     id: "event_4",
@@ -474,7 +480,10 @@ export const MOCK_EVENTS = [
     attendees: ["user_1", "user_5"],
     imageUrl: "/placeholder.svg",
     maxAttendees: 30,
-    groupId: "group_3"
+    groupId: "group_3",
+    createdAt: new Date("2023-06-25"),
+    isExclusive: false,
+    pendingRequests: []
   },
   {
     id: "event_5",

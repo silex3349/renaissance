@@ -1,9 +1,11 @@
+
 export interface User {
   id: string;
   email: string;
   name?: string;
   bio?: string;
   profileImageUrl?: string;
+  avatar?: string;
   interests: Interest[];
   joinedEvents: string[];
   matchedUsers: string[];
@@ -40,11 +42,13 @@ export interface Event {
   address?: string;
   creator: string;
   attendees: string[];
-  pendingRequests?: string[]; // New for exclusive events
-  isExclusive?: boolean; // New for exclusive events
+  pendingRequests?: string[]; // For exclusive events
+  isExclusive?: boolean; // For exclusive events
   interests: Interest[];
   maxAttendees?: number;
   createdAt: Date;
+  organizer?: string;
+  groupId?: string;
 }
 
 export interface Interest {
@@ -53,6 +57,7 @@ export interface Interest {
   category: string;
   description?: string;
   imageUrl?: string;
+  icon?: string; // Add icon property for interests
 }
 
 export interface Group {
@@ -66,6 +71,12 @@ export interface Group {
   isPrivate: boolean;
   createdAt: Date;
   creator: string;
+  location?: {
+    city: string;
+    country: string;
+    latitude?: number;
+    longitude?: number;
+  };
 }
 
 export interface ChatMessage {
@@ -82,6 +93,18 @@ export interface GroupChatMessage {
   groupId: string;
   content: string;
   timestamp: Date;
+}
+
+// Add Notification interface
+export interface Notification {
+  id: string;
+  type: "groupInvite" | "eventReminder" | "newMessage" | "joinRequest" | "joinRequestApproved" | "joinRequestRejected" | "joinedGroup" | "systemNotification";
+  message: string;
+  actionUrl?: string;
+  timestamp: Date;
+  read: boolean;
+  userId?: string;
+  avatar?: string;
 }
 
 // Component Props

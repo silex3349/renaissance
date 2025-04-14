@@ -53,7 +53,7 @@ const Layout = () => {
           <Link to="/profile" className={`flex flex-col items-center p-2 ${isProfileActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
             {user ? (
               <Avatar className="h-6 w-6">
-                <AvatarImage src={user.avatar} alt={user.name || "User"} />
+                <AvatarImage src={user.avatar || user.profileImageUrl} alt={user.name || "User"} />
                 <AvatarFallback className="text-xs">{user.name ? user.name.charAt(0).toUpperCase() : "U"}</AvatarFallback>
               </Avatar>
             ) : (

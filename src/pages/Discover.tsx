@@ -17,37 +17,49 @@ const getAllUsers = async (): Promise<User[]> => {
       id: "user1",
       email: "user1@example.com",
       name: "Alex Johnson",
-      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user1",
+      profileImageUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=user1",
       bio: "Love hiking and photography",
       location: { city: "San Francisco", country: "USA" },
       interests: [
         { id: "hiking", name: "Hiking", category: "Outdoors" },
         { id: "photography", name: "Photography", category: "Arts" }
-      ]
+      ],
+      joinedEvents: [],
+      matchedUsers: [],
+      joinedGroups: [],
+      createdAt: new Date()
     },
     {
       id: "user2",
       email: "user2@example.com",
       name: "Sam Taylor",
-      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user2",
+      profileImageUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=user2",
       bio: "Tech enthusiast and coffee lover",
       location: { city: "Austin", country: "USA" },
       interests: [
         { id: "technology", name: "Technology", category: "Professional" },
         { id: "coffee", name: "Coffee", category: "Food" }
-      ]
+      ],
+      joinedEvents: [],
+      matchedUsers: [],
+      joinedGroups: [],
+      createdAt: new Date()
     },
     {
       id: "user3",
       email: "user3@example.com",
       name: "Jordan Lee",
-      avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user3",
+      profileImageUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=user3",
       bio: "Traveling and trying new foods",
       location: { city: "Chicago", country: "USA" },
       interests: [
         { id: "travel", name: "Travel", category: "Adventure" },
         { id: "food", name: "Dining Out", category: "Food" }
-      ]
+      ],
+      joinedEvents: [],
+      matchedUsers: [],
+      joinedGroups: [],
+      createdAt: new Date()
     }
   ];
 };

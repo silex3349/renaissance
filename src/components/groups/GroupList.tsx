@@ -167,6 +167,7 @@ const GroupList = ({ groups, title }: GroupListProps) => {
                       <span>{group.events.length} events</span>
                     </div>
                     
+                    {/* Only show location if it exists */}
                     {group.location && (
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4 text-gray-600" />
