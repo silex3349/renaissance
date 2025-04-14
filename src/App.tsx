@@ -36,9 +36,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <NotificationProvider>
+      <Router>
         <AuthProvider>
-          <Router>
+          <NotificationProvider>
             <Routes>
               <Route path="/" element={<Layout />}>
                 {/* Merged Home and Events into a single route */}
@@ -55,9 +55,9 @@ function App() {
               </Route>
             </Routes>
             <Toaster />
-          </Router>
+          </NotificationProvider>
         </AuthProvider>
-      </NotificationProvider>
+      </Router>
     </QueryClientProvider>
   );
 }
