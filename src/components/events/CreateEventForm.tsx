@@ -13,7 +13,7 @@ import { MOCK_EVENTS } from "@/services/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FormDescription } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 
 const CreateEventForm = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate();
@@ -222,9 +222,9 @@ const CreateEventForm = ({ onClose }: { onClose: () => void }) => {
                     <Lock className="h-4 w-4" />
                     Exclusive Event
                   </Label>
-                  <FormDescription>
+                  <p className="text-sm text-muted-foreground">
                     Attendees will need your approval to join this event
-                  </FormDescription>
+                  </p>
                 </div>
               </div>
             </div>

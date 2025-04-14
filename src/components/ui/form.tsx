@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
@@ -42,13 +43,22 @@ const FormField = <
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
-  const { getFieldState, formState } = useFormContext()
+  const formContext = useFormContext()
 
-  const fieldState = getFieldState(fieldContext.name, formState)
-
-  if (!fieldContext) {
-    throw new Error("useFormField should be used within <FormField>")
+  // Return empty values if no form context is available
+  if (!formContext || !fieldContext) {
+    return {
+      id: itemContext?.id,
+      name: "",
+      formItemId: "",
+      formDescriptionId: "",
+      formMessageId: "",
+      error: undefined,
+    }
   }
+
+  const { getFieldState, formState } = formContext
+  const fieldState = getFieldState(fieldContext.name, formState)
 
   const { id } = itemContext
 
@@ -66,9 +76,7 @@ type FormItemContextValue = {
   id: string
 }
 
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
-)
+const FormItemContext = React.createContext<FormItemContextValue | undefined>(undefined)
 
 const FormItem = React.forwardRef<
   HTMLDivElement,
