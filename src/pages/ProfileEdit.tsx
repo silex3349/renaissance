@@ -93,18 +93,19 @@ const ProfileEdit = () => {
 
   return (
     <div className="bg-background min-h-screen pb-20">
-      <div className="pt-6 px-4">
+      <div className="flex items-center pt-6 px-4 mb-4">
         <Button 
           variant="ghost" 
           size="icon" 
-          className="mb-4" 
+          className="mr-2" 
           onClick={() => navigate("/profile")}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
-        
+        <h1 className="text-2xl font-bold">Profile Settings</h1>
+      </div>
+      
+      <div className="px-4">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar */}
           <div className="flex flex-col items-center">

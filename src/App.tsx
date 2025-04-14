@@ -11,6 +11,7 @@ import Auth from "@/pages/Auth";
 import Profile from "@/pages/Profile";
 import ProfileEdit from "@/pages/ProfileEdit";
 import Chats from "@/pages/Chats";
+import Groups from "@/pages/Groups";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -48,6 +49,8 @@ function App() {
                 <Route path="events/:id" element={<Events />} />
                 <Route path="events/create" element={<ProtectedRoute><Events /></ProtectedRoute>} />
                 <Route path="chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
+                <Route path="groups" element={<Groups />} />
+                <Route path="groups/:id" element={<Groups />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

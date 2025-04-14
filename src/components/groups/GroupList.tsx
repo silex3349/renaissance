@@ -4,8 +4,11 @@ import { Link } from "react-router-dom";
 import { Group } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Users, MapPin, CalendarDays } from "lucide-react";
+import { Lock, Users, MapPin, CalendarDays, BookmarkPlus, Bookmark } from "lucide-react";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface GroupListProps {
   groups: Group[];
@@ -13,6 +16,49 @@ interface GroupListProps {
 }
 
 const GroupList = ({ groups, title }: GroupListProps) => {
+  const { user, updateUserWatchlist } = useAuth();
+  const { toast } = useToast();
+  
+  const watchlist = user ? JSON.parse(localStorage.getItem("userWatchlist") || "{}") : {};
+  const watchlistedGroups = watchlist.groups || [];
+
+  const handleToggleWatchlist = (e: React.MouseEvent, groupId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) return;
+    
+    const currentWatchlist = JSON.parse(localStorage.getItem("userWatchlist") || "{}");
+    
+    if (!currentWatchlist.groups) {
+      currentWatchlist.groups = [];
+    }
+    
+    // Add group to watchlist if not already in it
+    if (!currentWatchlist.groups.includes(groupId)) {
+      currentWatchlist.groups.push(groupId);
+      localStorage.setItem("userWatchlist", JSON.stringify(currentWatchlist));
+      
+      updateUserWatchlist(currentWatchlist);
+      
+      toast({
+        title: "Added to watchlist",
+        description: "Group has been added to your watchlist"
+      });
+    } else {
+      // Remove from watchlist
+      currentWatchlist.groups = currentWatchlist.groups.filter((id: string) => id !== groupId);
+      localStorage.setItem("userWatchlist", JSON.stringify(currentWatchlist));
+      
+      updateUserWatchlist(currentWatchlist);
+      
+      toast({
+        title: "Removed from watchlist",
+        description: "Group has been removed from your watchlist"
+      });
+    }
+  };
+  
   if (groups.length === 0) {
     return (
       <div>
@@ -63,16 +109,28 @@ const GroupList = ({ groups, title }: GroupListProps) => {
                       {group.isPrivate ? (
                         <>
                           <Lock size={14} />
-                          Private Group
+                          Exclusive Group
                         </>
                       ) : (
                         <>
                           <Users size={14} />
-                          Public Group
+                          Open Group
                         </>
                       )}
                     </span>
                   </div>
+                  
+                  {/* Watchlist button */}
+                  <button 
+                    className="absolute top-4 right-4 bg-gray-200/80 rounded-full p-2"
+                    onClick={(e) => handleToggleWatchlist(e, group.id)}
+                    title={watchlistedGroups.includes(group.id) ? "Remove from watchlist" : "Add to watchlist"}
+                  >
+                    {watchlistedGroups.includes(group.id) ? 
+                      <Bookmark className="h-5 w-5 text-gray-700" /> : 
+                      <BookmarkPlus className="h-5 w-5 text-gray-700" />
+                    }
+                  </button>
                 </div>
                 
                 {/* Group Info */}

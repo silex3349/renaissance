@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, Lock, MessageSquare, Users } from "lucide-react";
+import { CalendarDays, Lock, MessageSquare, Users, Bookmark, BookmarkPlus, ArrowLeft } from "lucide-react";
 import { MOCK_EVENTS } from "@/services/mockData";
 import GroupChat from "@/components/chat/GroupChat";
 import EventCard from "@/components/events/EventCard";

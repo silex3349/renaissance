@@ -35,7 +35,7 @@ const NotificationCenter = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative mr-2">
+        <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
@@ -47,7 +47,7 @@ const NotificationCenter = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent align="end" className="w-80 p-0 mr-2">
         <div className="p-4 border-b">
           <h3 className="font-semibold">Notifications</h3>
         </div>
