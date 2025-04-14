@@ -26,6 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Lock } from "lucide-react";
 import InterestSelector from "@/components/profile/InterestSelector";
 
 interface CreateGroupDialogProps {
@@ -150,13 +152,16 @@ const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps) => {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox
+                    <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Private Group</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      Private Group
+                    </FormLabel>
                     <FormDescription>
                       Private groups require admin approval to join.
                     </FormDescription>

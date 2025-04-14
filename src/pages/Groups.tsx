@@ -74,7 +74,7 @@ const Groups = () => {
   };
 
   return (
-    <div className="renaissance-container py-8">
+    <div className="min-h-screen pb-20">
       {isDetailView && currentGroup ? (
         <GroupDetail 
           group={currentGroup} 

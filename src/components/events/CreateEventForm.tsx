@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, MapPin, Users, ArrowLeft, X } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, ArrowLeft, X, Lock } from "lucide-react";
 import InterestSelector from "@/components/profile/InterestSelector";
 import LocationDetection from "@/components/location/LocationDetection";
 import { MOCK_EVENTS } from "@/services/mockData";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { FormDescription } from "@/components/ui/form";
 
 const CreateEventForm = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate();
@@ -24,6 +27,7 @@ const CreateEventForm = ({ onClose }: { onClose: () => void }) => {
   const [address, setAddress] = useState("");
   const [maxAttendees, setMaxAttendees] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExclusive, setIsExclusive] = useState(false);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +61,8 @@ const CreateEventForm = ({ onClose }: { onClose: () => void }) => {
         interests: user?.interests || [],
         createdAt: new Date(),
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
+        isExclusive: isExclusive, // Add the exclusive flag
+        pendingRequests: [], // Add for storing join requests
       };
       
       // In a real app, you would call an API to create the event
@@ -203,6 +209,23 @@ const CreateEventForm = ({ onClose }: { onClose: () => void }) => {
                   onChange={(e) => setMaxAttendees(e.target.value)} 
                   placeholder="Leave empty for unlimited"
                 />
+              </div>
+              
+              <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <Switch
+                  id="isExclusive"
+                  checked={isExclusive}
+                  onCheckedChange={setIsExclusive}
+                />
+                <div className="space-y-1 leading-none">
+                  <Label htmlFor="isExclusive" className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Exclusive Event
+                  </Label>
+                  <FormDescription>
+                    Attendees will need your approval to join this event
+                  </FormDescription>
+                </div>
               </div>
             </div>
           </CardContent>

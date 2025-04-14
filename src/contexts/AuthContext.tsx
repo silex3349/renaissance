@@ -25,6 +25,9 @@ interface AuthContextType {
     interestIds: string[];
   }) => void;
   updateUserWatchlist: (watchlist: any) => void;
+  requestJoinEvent: (eventId: string) => void;
+  approveJoinRequest: (eventId: string, userId: string) => void;
+  rejectJoinRequest: (eventId: string, userId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -197,6 +200,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const joinEvent = (eventId: string) => {
     if (!user) return;
     
+    const event = MOCK_EVENTS.find(e => e.id === eventId);
+    
+    if (event && event.isExclusive) {
+      requestJoinEvent(eventId);
+      return;
+    }
+    
     if (user.joinedEvents?.includes(eventId)) {
       return; // Already joined
     }
@@ -212,6 +222,95 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     toast({
       title: "Event joined",
       description: "You have successfully joined this event",
+    });
+  };
+
+  const requestJoinEvent = (eventId: string) => {
+    if (!user) return;
+    
+    const event = MOCK_EVENTS.find(e => e.id === eventId);
+    if (!event) return;
+    
+    if (!event.pendingRequests) {
+      event.pendingRequests = [];
+    }
+    
+    if (event.pendingRequests.includes(user.id)) {
+      toast({
+        title: "Request pending",
+        description: "Your request to join this event is already pending.",
+      });
+      return;
+    }
+    
+    event.pendingRequests.push(user.id);
+    
+    if (addNotification) {
+      addNotification({
+        type: "joinRequest",
+        message: `${user.email || 'Someone'} wants to join your event`,
+        actionUrl: `/events/${eventId}`,
+        userId: event.creator,
+      });
+    }
+    
+    toast({
+      title: "Request sent",
+      description: "Your request to join this event has been sent to the organizer.",
+    });
+  };
+  
+  const approveJoinRequest = (eventId: string, userId: string) => {
+    if (!user) return;
+    
+    const event = MOCK_EVENTS.find(e => e.id === eventId);
+    if (!event || event.creator !== user.id) return;
+    
+    if (event.pendingRequests) {
+      event.pendingRequests = event.pendingRequests.filter(id => id !== userId);
+    }
+    
+    if (!event.attendees.includes(userId)) {
+      event.attendees.push(userId);
+    }
+    
+    if (addNotification) {
+      addNotification({
+        type: "joinRequestApproved",
+        message: `Your request to join "${event.title}" has been approved`,
+        actionUrl: `/events/${eventId}`,
+        userId: userId,
+      });
+    }
+    
+    toast({
+      title: "Request approved",
+      description: "The join request has been approved.",
+    });
+  };
+  
+  const rejectJoinRequest = (eventId: string, userId: string) => {
+    if (!user) return;
+    
+    const event = MOCK_EVENTS.find(e => e.id === eventId);
+    if (!event || event.creator !== user.id) return;
+    
+    if (event.pendingRequests) {
+      event.pendingRequests = event.pendingRequests.filter(id => id !== userId);
+    }
+    
+    if (addNotification) {
+      addNotification({
+        type: "joinRequestRejected",
+        message: `Your request to join "${event.title}" was not approved`,
+        actionUrl: `/events/${eventId}`,
+        userId: userId,
+      });
+    }
+    
+    toast({
+      title: "Request rejected",
+      description: "The join request has been rejected.",
     });
   };
 
@@ -357,6 +456,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         leaveGroup,
         createGroup,
         updateUserWatchlist,
+        requestJoinEvent,
+        approveJoinRequest,
+        rejectJoinRequest,
       }}
     >
       {children}
@@ -372,4 +474,4 @@ export const useAuth = () => {
   return context;
 };
 
-import { INTERESTS, MOCK_GROUPS } from "@/services/mockData";
+import { INTERESTS, MOCK_GROUPS, MOCK_EVENTS } from "@/services/mockData";

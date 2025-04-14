@@ -80,10 +80,8 @@ const Events = () => {
       activeTab === "all" ||
       (activeTab === "joined" &&
         user?.joinedEvents?.includes(event.id)) ||
-      (activeTab === "upcoming" &&
-        new Date(event.dateTime) > new Date()) ||
-      (activeTab === "nearby" && 
-        user?.location && event.location.city === user?.location.city);
+      (activeTab === "created" &&
+        user?.id === event.creator);
     return matchesSearch && matchesTab;
   });
   
@@ -93,7 +91,7 @@ const Events = () => {
       .includes(searchTerm.toLowerCase());
     const matchesTab =
       activeTab === "all" ||
-      (activeTab === "my-groups" &&
+      (activeTab === "joined" &&
         user?.id && 
         group.members.includes(user.id)) ||
       (activeTab === "created" &&
@@ -338,11 +336,10 @@ const Events = () => {
         {viewMode === "list" && (
           <>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList className="grid grid-cols-4 mb-4 bg-gray-100 p-1 rounded-full">
+              <TabsList className="grid grid-cols-3 mb-4 bg-gray-100 p-1 rounded-full">
                 <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-white">All</TabsTrigger>
                 <TabsTrigger value="joined" className="rounded-full data-[state=active]:bg-white">Joined</TabsTrigger>
-                <TabsTrigger value="upcoming" className="rounded-full data-[state=active]:bg-white">Upcoming</TabsTrigger>
-                <TabsTrigger value="nearby" className="rounded-full data-[state=active]:bg-white">Nearby</TabsTrigger>
+                <TabsTrigger value="created" className="rounded-full data-[state=active]:bg-white">Created</TabsTrigger>
               </TabsList>
 
               <TabsContent value={activeTab} className="space-y-4">
@@ -354,7 +351,7 @@ const Events = () => {
                     title={
                       activeTab === "all" ? "All Events" :
                       activeTab === "joined" ? "Your Events" :
-                      activeTab === "upcoming" ? "Upcoming Events" :
+                      activeTab === "created" ? "Your Created Events" :
                       "Events Near You"
                     }
                     showMap={showMapView}
@@ -369,8 +366,8 @@ const Events = () => {
         {viewMode === "groups" && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
             <TabsList className="grid grid-cols-3 mb-4 bg-gray-100 p-1 rounded-full">
-              <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-white">All Groups</TabsTrigger>
-              <TabsTrigger value="my-groups" className="rounded-full data-[state=active]:bg-white">My Groups</TabsTrigger>
+              <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-white">All</TabsTrigger>
+              <TabsTrigger value="joined" className="rounded-full data-[state=active]:bg-white">Joined</TabsTrigger>
               <TabsTrigger value="created" className="rounded-full data-[state=active]:bg-white">Created</TabsTrigger>
             </TabsList>
 
@@ -379,8 +376,8 @@ const Events = () => {
                 groups={filteredGroups} 
                 title={
                   activeTab === "all" ? "All Groups" :
-                  activeTab === "my-groups" ? "My Groups" :
-                  "Groups Created By Me"
+                  activeTab === "joined" ? "Joined Groups" :
+                  "Created Groups"
                 }
               />
             </TabsContent>

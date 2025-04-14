@@ -26,7 +26,7 @@ const GroupListView = ({ groups }: GroupListViewProps) => {
       .includes(searchTerm.toLowerCase());
     const matchesTab =
       activeTab === "all" ||
-      (activeTab === "my-groups" &&
+      (activeTab === "joined" &&
         user?.id && 
         group.members.includes(user.id)) ||
       (activeTab === "created" &&
@@ -38,53 +38,57 @@ const GroupListView = ({ groups }: GroupListViewProps) => {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Groups</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Group
-          </Button>
-        </div>
+    <div className="pt-4 px-4">
+      <div className="bg-gray-100 rounded-full mb-4 p-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3 w-full bg-transparent">
+            <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-white">All</TabsTrigger>
+            <TabsTrigger value="joined" className="rounded-full data-[state=active]:bg-white">Joined</TabsTrigger>
+            <TabsTrigger value="created" className="rounded-full data-[state=active]:bg-white">Created</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="relative mb-4 mt-6">
+        <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
         <Input
           placeholder="Search groups..."
-          className="pl-10"
+          className="pl-10 pr-12 py-6 rounded-xl bg-gray-50 border-gray-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute right-2 top-2 text-gray-500"
+        >
+          <Filter className="h-5 w-5" />
+        </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="all">All Groups</TabsTrigger>
-          <TabsTrigger value="my-groups">My Groups</TabsTrigger>
-          <TabsTrigger value="created">Created By Me</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="space-y-4">
-          <GroupList 
-            groups={filteredGroups} 
-            title={
-              activeTab === "all" ? "All Groups" :
-              activeTab === "my-groups" ? "My Groups" :
-              "Groups Created By Me"
-            }
-          />
-        </TabsContent>
-      </Tabs>
+      <TabsContent value={activeTab} className="space-y-4">
+        <GroupList 
+          groups={filteredGroups} 
+          title={
+            activeTab === "all" ? "All Groups" :
+            activeTab === "joined" ? "Joined Groups" :
+            "Groups Created By Me"
+          }
+        />
+      </TabsContent>
 
       <CreateGroupDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
       />
+      
+      <Button 
+        className="fixed right-4 bottom-20 rounded-full shadow-lg z-20 flex items-center gap-2"
+        onClick={() => setShowCreateDialog(true)}
+      >
+        <Plus className="h-5 w-5" />
+        Create Group
+      </Button>
     </div>
   );
 };
