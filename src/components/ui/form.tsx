@@ -60,14 +60,14 @@ const useFormField = () => {
   const { getFieldState, formState } = formContext
   const fieldState = getFieldState(fieldContext.name, formState)
 
-  const { id } = itemContext
+  const { id } = itemContext || {}
 
   return {
     id,
     name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
+    formItemId: id ? `${id}-form-item` : "",
+    formDescriptionId: id ? `${id}-form-item-description` : "",
+    formMessageId: id ? `${id}-form-item-message` : "",
     ...fieldState,
   }
 }
