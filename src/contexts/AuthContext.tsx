@@ -24,6 +24,7 @@ interface AuthContextType {
     isPrivate: boolean;
     interestIds: string[];
   }) => void;
+  updateUserWatchlist: (watchlist: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -315,6 +316,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     MOCK_GROUPS.push(newGroup as any);
   };
 
+  const updateUserWatchlist = (watchlist: any) => {
+    if (!user) return;
+    
+    const updatedUser = {
+      ...user,
+      watchlist
+    };
+    
+    setUser(updatedUser);
+    localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -333,6 +346,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         joinGroup,
         leaveGroup,
         createGroup,
+        updateUserWatchlist,
       }}
     >
       {children}

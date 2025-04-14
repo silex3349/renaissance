@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Group, User, Event } from "@/types";
@@ -17,16 +16,16 @@ import { useNotifications } from "@/contexts/NotificationContext";
 interface GroupDetailProps {
   group: Group;
   members: User[];
+  onAddToWatchlist?: (groupId: string) => void;
 }
 
-const GroupDetail = ({ group, members }: GroupDetailProps) => {
+const GroupDetail = ({ group, members, onAddToWatchlist }: GroupDetailProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addNotification } = useNotifications();
   const [activeTab, setActiveTab] = useState("about");
   const [message, setMessage] = useState("");
 
-  // Get the events for this group
   const groupEvents = MOCK_EVENTS.filter(
     (event) => event.groupId === group.id
   ) as Event[];
@@ -37,7 +36,6 @@ const GroupDetail = ({ group, members }: GroupDetailProps) => {
   const handleJoinGroup = () => {
     if (!user) return;
 
-    // If the group is private, send a join request
     if (group.isPrivate) {
       addNotification({
         type: "joinRequest",
@@ -45,14 +43,12 @@ const GroupDetail = ({ group, members }: GroupDetailProps) => {
         actionUrl: `/groups/${group.id}`,
       });
 
-      // Notify the group creator
       addNotification({
         type: "joinRequest",
         message: `${user.email} requested to join your group ${group.name}`,
         actionUrl: `/groups/${group.id}`,
       });
     } else {
-      // If the group is public, join immediately
       addNotification({
         type: "joinedGroup",
         message: `You have joined ${group.name}`,
@@ -64,8 +60,6 @@ const GroupDetail = ({ group, members }: GroupDetailProps) => {
   const handleInviteMember = () => {
     if (!user) return;
 
-    // In a real app, this would open a dialog to select users
-    // For this demo, we'll just show a notification
     addNotification({
       type: "groupInvite",
       message: `You invited a friend to join ${group.name}`,
@@ -73,13 +67,18 @@ const GroupDetail = ({ group, members }: GroupDetailProps) => {
     });
   };
 
-  // Helper function to format the date
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+  };
+
+  const handleToggleWatchlist = () => {
+    if (onAddToWatchlist) {
+      onAddToWatchlist(group.id);
+    }
   };
 
   return (
@@ -111,6 +110,12 @@ const GroupDetail = ({ group, members }: GroupDetailProps) => {
           {isUserMember && (
             <Button variant="outline" onClick={handleInviteMember}>
               Invite Member
+            </Button>
+          )}
+          {user && (
+            <Button variant="outline" onClick={handleToggleWatchlist}>
+              <BookmarkPlus className="h-4 w-4 mr-2" />
+              Watchlist
             </Button>
           )}
           <Button
