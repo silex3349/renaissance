@@ -33,7 +33,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { addNotification } = useNotifications();
+  let notificationsContext;
+  try {
+    notificationsContext = useNotifications();
+  } catch (error) {
+    notificationsContext = {
+      addNotification: () => {},
+    };
+  }
+  const { addNotification } = notificationsContext;
 
   useEffect(() => {
     const storedUser = localStorage.getItem("renaissanceUser");
@@ -260,11 +268,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(updatedUser);
     localStorage.setItem("renaissanceUser", JSON.stringify(updatedUser));
     
-    addNotification({
-      type: "joinedGroup",
-      message: "You have joined a new group",
-      actionUrl: `/groups/${groupId}`,
-    });
+    if (addNotification) {
+      addNotification({
+        type: "joinedGroup",
+        message: "You have joined a new group",
+        actionUrl: `/groups/${groupId}`,
+      });
+    }
   };
   
   const leaveGroup = (groupId: string) => {
