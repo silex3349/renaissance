@@ -14,6 +14,7 @@ import Chats from "@/pages/Chats";
 import Groups from "@/pages/Groups";
 import NotFound from "@/pages/NotFound";
 import Discover from "@/pages/Discover";
+import LocationDetection from "@/components/location/LocationDetection";
 
 // Create a react-query client
 const queryClient = new QueryClient({
@@ -50,6 +51,7 @@ function App() {
               <Route path="/" element={<Layout />}>
                 <Route index element={<Events />} />
                 <Route path="auth" element={<Auth />} />
+                <Route path="location" element={<LocationDetection />} />
                 <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
                 <Route path="profile/:id" element={<Profile />} />

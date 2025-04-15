@@ -2,22 +2,15 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: () => void, autoDetect?: boolean }) => {
-  const { updateUserLocation, user } = useAuth();
+const LocationDetection = () => {
+  const { updateUserLocation } = useAuth();
   const { toast } = useToast();
   const [isDetecting, setIsDetecting] = useState(false);
   const navigate = useNavigate();
-
-  // Auto-detect location when component mounts if autoDetect is true
-  useEffect(() => {
-    if (autoDetect && !user?.location) {
-      detectLocation();
-    }
-  }, [autoDetect, user]);
 
   const detectLocation = () => {
     setIsDetecting(true);
@@ -43,11 +36,7 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
         setIsDetecting(false);
         
         // Navigate to events page after detection
-        if (onComplete) {
-          onComplete();
-        } else {
-          navigate("/", { replace: true });
-        }
+        navigate("/", { replace: true });
       },
       (error) => {
         console.error("Geolocation error:", error);
@@ -103,14 +92,12 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
           )}
         </Button>
         
-        {onComplete && (
-          <button
-            onClick={onComplete}
-            className="mt-4 text-sm text-gray-500 hover:text-gray-700"
-          >
-            Skip for now
-          </button>
-        )}
+        <button
+          onClick={() => navigate("/", { replace: true })}
+          className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+        >
+          Skip for now
+        </button>
       </div>
     </div>
   );

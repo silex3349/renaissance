@@ -1,9 +1,8 @@
 
 import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import Onboarding from "../onboarding/Onboarding";
 import { motion } from "framer-motion";
-import { Home, Calendar, MessageSquare, User } from "lucide-react";
+import { Calendar, MessageSquare, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -12,14 +11,6 @@ const Layout = () => {
   const location = useLocation();
   const isDiscoverPage = location.pathname === "/discover";
   
-  // Check if user exists and has completed the necessary onboarding steps
-  const shouldShowOnboarding = user && (
-    !user.interests || 
-    user.interests.length === 0 || 
-    !user.ageRange || 
-    !user.location
-  );
-
   // Special styling for discover page
   const isCustomStyledPage = isDiscoverPage || location.pathname.includes("/matching");
 
@@ -36,7 +27,7 @@ const Layout = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        {shouldShowOnboarding ? <Onboarding /> : <Outlet />}
+        <Outlet />
       </motion.main>
       
       {/* Bottom Navigation Bar */}
