@@ -11,6 +11,7 @@ interface GoogleAuthResponse {
 
 // Create user from Google credentials
 export const createUserFromGoogle = (response: GoogleAuthResponse): Partial<User> => {
+  console.log("Creating user from Google response:", response);
   // In a real application, you would decode the JWT token
   // For now, we'll create a simple user object
   return {
@@ -32,6 +33,7 @@ export const createUserFromGoogle = (response: GoogleAuthResponse): Partial<User
 
 // Create user from Apple credentials
 export const createUserFromApple = (response: any): Partial<User> => {
+  console.log("Creating user from Apple response:", response);
   // In a real application, you would use the data from Apple's response
   return {
     id: `apple_${Date.now()}`,

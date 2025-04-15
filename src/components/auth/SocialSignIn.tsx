@@ -12,6 +12,7 @@ export const SocialSignIn = () => {
   const { toast } = useToast();
 
   const handleGoogleSignIn = async (response: any) => {
+    console.log("Google sign-in response:", response);
     try {
       const userData = createUserFromGoogle(response);
       await signUpWithSocial(userData);
@@ -20,6 +21,7 @@ export const SocialSignIn = () => {
         description: "Welcome to Renaissance!",
       });
     } catch (error) {
+      console.error("Google sign-in error:", error);
       toast({
         title: "Google sign-in failed",
         description: error instanceof Error ? error.message : "Please try again",
@@ -40,6 +42,7 @@ export const SocialSignIn = () => {
         description: "Welcome to Renaissance!",
       });
     } catch (error) {
+      console.error("Apple sign-in error:", error);
       toast({
         title: "Apple sign-in failed",
         description: error instanceof Error ? error.message : "Please try again",
@@ -66,6 +69,7 @@ export const SocialSignIn = () => {
           <GoogleLogin
             onSuccess={handleGoogleSignIn}
             onError={() => {
+              console.error("Google sign-in failed");
               toast({
                 title: "Google sign-in failed",
                 description: "An error occurred during sign in",

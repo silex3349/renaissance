@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,9 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { SocialSignIn } from "@/components/auth/SocialSignIn";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-
-const GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com";
 
 export const AuthForms = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,115 +45,113 @@ export const AuthForms = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <Tabs defaultValue="signin" className="w-full max-w-md">
-        <TabsList className="grid grid-cols-2 w-full">
-          <TabsTrigger value="signin">Sign In</TabsTrigger>
-          <TabsTrigger value="signup">Sign Up</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="signin">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">Welcome Back</CardTitle>
-              <CardDescription>
-                Sign in to your account to continue your journey
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSignIn}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input 
-                    id="signin-email" 
-                    name="signin-email" 
-                    type="email" 
-                    placeholder="Your email address" 
-                    required 
-                    disabled={isLoading}
-                  />
+    <Tabs defaultValue="signin" className="w-full max-w-md">
+      <TabsList className="grid grid-cols-2 w-full">
+        <TabsTrigger value="signin">Sign In</TabsTrigger>
+        <TabsTrigger value="signup">Sign Up</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="signin">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold">Welcome Back</CardTitle>
+            <CardDescription>
+              Sign in to your account to continue your journey
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSignIn}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email">Email</Label>
+                <Input 
+                  id="signin-email" 
+                  name="signin-email" 
+                  type="email" 
+                  placeholder="Your email address" 
+                  required 
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="signin-password">Password</Label>
+                  <a href="#" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </a>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <a href="#" className="text-sm text-primary hover:underline">
-                      Forgot password?
-                    </a>
-                  </div>
-                  <Input 
-                    id="signin-password" 
-                    name="signin-password" 
-                    type="password" 
-                    placeholder="Your password" 
-                    required 
-                    disabled={isLoading}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign In"}
-                </Button>
-                <SocialSignIn />
-              </CardFooter>
-            </form>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="signup">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">Create Account</CardTitle>
-              <CardDescription>
-                Join Renaissance and discover events and people with shared interests
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSignUp}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input 
-                    id="signup-email" 
-                    name="signup-email" 
-                    type="email" 
-                    placeholder="Your email address" 
-                    required 
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input 
-                    id="signup-password" 
-                    name="signup-password" 
-                    type="password" 
-                    placeholder="Create a password" 
-                    required 
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="signup-confirm" className="sr-only">Confirm Password</Label>
-                  <Input 
-                    id="signup-confirm" 
-                    name="signup-confirm" 
-                    type="password" 
-                    placeholder="Confirm your password" 
-                    required 
-                    disabled={isLoading}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating Account..." : "Create Account"}
-                </Button>
-                <SocialSignIn />
-              </CardFooter>
-            </form>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </GoogleOAuthProvider>
+                <Input 
+                  id="signin-password" 
+                  name="signin-password" 
+                  type="password" 
+                  placeholder="Your password" 
+                  required 
+                  disabled={isLoading}
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+              <SocialSignIn />
+            </CardFooter>
+          </form>
+        </Card>
+      </TabsContent>
+      
+      <TabsContent value="signup">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold">Create Account</CardTitle>
+            <CardDescription>
+              Join Renaissance and discover events and people with shared interests
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSignUp}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">Email</Label>
+                <Input 
+                  id="signup-email" 
+                  name="signup-email" 
+                  type="email" 
+                  placeholder="Your email address" 
+                  required 
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-password">Password</Label>
+                <Input 
+                  id="signup-password" 
+                  name="signup-password" 
+                  type="password" 
+                  placeholder="Create a password" 
+                  required 
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="signup-confirm" className="sr-only">Confirm Password</Label>
+                <Input 
+                  id="signup-confirm" 
+                  name="signup-confirm" 
+                  type="password" 
+                  placeholder="Confirm your password" 
+                  required 
+                  disabled={isLoading}
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </Button>
+              <SocialSignIn />
+            </CardFooter>
+          </form>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 };
