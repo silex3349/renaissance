@@ -29,9 +29,6 @@ const NotificationCenter = () => {
     }
   }, [open, unreadCount, markAllAsRead]);
 
-  // Don't render the notification center if user is not logged in
-  if (!user) return null;
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>

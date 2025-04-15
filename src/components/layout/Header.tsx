@@ -43,8 +43,8 @@ const Header = () => {
         </nav>
         
         <div className="flex items-center space-x-4">
-          {/* Always show the notification center */}
-          <NotificationCenter />
+          {/* Always show the notification center if user is logged in */}
+          {user && <NotificationCenter />}
           
           {user ? (
             <>
