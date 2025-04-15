@@ -33,6 +33,12 @@ const SwipeUserCard: React.FC<SwipeUserCardProps> = ({
     }
   };
 
+  // Safely get the first name or a fallback value
+  const getFirstName = () => {
+    if (!user.name) return "User";
+    return user.name.split(' ')[0];
+  };
+
   return (
     <motion.div
       className={`absolute top-0 left-0 w-full h-full cursor-pointer ${
@@ -55,7 +61,7 @@ const SwipeUserCard: React.FC<SwipeUserCardProps> = ({
         <div 
           className="w-full h-full bg-cover bg-center relative"
           style={{ 
-            backgroundImage: `url(${user.profileImageUrl})`,
+            backgroundImage: `url(${user.profileImageUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"})`,
             backgroundSize: 'cover'
           }}
         >
@@ -66,7 +72,7 @@ const SwipeUserCard: React.FC<SwipeUserCardProps> = ({
           <CardContent className="absolute bottom-0 left-0 right-0 p-5 text-white">
             <div className="mb-3">
               <div className="flex items-end gap-2">
-                <h2 className="text-3xl font-bold">{user.name.split(' ')[0]}</h2>
+                <h2 className="text-3xl font-bold">{getFirstName()}</h2>
                 {user.location && (
                   <div className="flex items-center gap-1 text-sm text-white/80">
                     <MapPin size={14} />
@@ -74,7 +80,7 @@ const SwipeUserCard: React.FC<SwipeUserCardProps> = ({
                   </div>
                 )}
               </div>
-              <p className="text-white/80 line-clamp-2 mt-1">{user.bio}</p>
+              <p className="text-white/80 line-clamp-2 mt-1">{user.bio || "No bio available"}</p>
             </div>
             
             {user.interests && user.interests.length > 0 && (

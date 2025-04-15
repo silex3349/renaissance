@@ -131,6 +131,12 @@ const EventDetail = ({ event, attendees }: EventDetailProps) => {
     return defaultImages[index];
   };
 
+  // Fix for getUserInitials: safely handle undefined name
+  const getUserInitials = (user: UserType) => {
+    if (!user || !user.name) return "?";
+    return user.name.split(" ").map(n => n[0]).join("").toUpperCase();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -273,13 +279,13 @@ const EventDetail = ({ event, attendees }: EventDetailProps) => {
                       >
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <span className="text-primary font-medium">
-                            {attendee.email[0].toUpperCase()}
+                            {attendee.email && attendee.email[0] ? attendee.email[0].toUpperCase() : "?"}
                           </span>
                         </div>
                         <div>
                           <p className="text-sm font-medium">Anonymous User</p>
                           <p className="text-xs text-muted-foreground">
-                            {attendee.interests.length} shared interests
+                            {attendee.interests ? attendee.interests.length : 0} shared interests
                           </p>
                         </div>
                       </div>
