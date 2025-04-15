@@ -89,7 +89,7 @@ const EventListView = ({ events }: EventListViewProps) => {
               <TabsTrigger value="nearby">Nearby</TabsTrigger>
             </TabsList>
 
-            <TabsContent value={activeTab} className="space-y-4">
+            <TabsContent value={activeTab} className="space-y-4 no-scrollbar">
               <EventList 
                 events={filteredEvents} 
                 title={
@@ -98,6 +98,7 @@ const EventListView = ({ events }: EventListViewProps) => {
                   activeTab === "upcoming" ? "Upcoming Events" :
                   "Events Near You"
                 }
+                compact={true}
               />
             </TabsContent>
           </Tabs>

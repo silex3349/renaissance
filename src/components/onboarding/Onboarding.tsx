@@ -21,14 +21,19 @@ const Onboarding = () => {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      // Onboarding complete
-      navigate("/discover");
+      // Onboarding complete - navigate to home/events page
+      navigate("/");
     }
   };
 
   const handleAgeRangeChange = (ageRange: { min: number; max: number }) => {
     // Store the age range in the user's profile
     updateUserAgeRange(JSON.stringify(ageRange));
+  };
+
+  const handleInterestsSelected = () => {
+    // Move to next step
+    handleNext();
   };
 
   return (
@@ -66,15 +71,8 @@ const Onboarding = () => {
                 </div>
                 
                 <div className="pb-4">
-                  <InterestSelector />
+                  <InterestSelector onComplete={handleInterestsSelected} showContinueOnly={true} />
                 </div>
-                
-                <Button 
-                  onClick={handleNext} 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  Continue <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
               </div>
             )}
             
@@ -118,15 +116,8 @@ const Onboarding = () => {
                 </div>
                 
                 <div className="pb-4">
-                  <LocationDetection />
+                  <LocationDetection onComplete={handleNext} />
                 </div>
-                
-                <Button 
-                  onClick={handleNext} 
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  Get Started <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
               </div>
             )}
           </CardContent>

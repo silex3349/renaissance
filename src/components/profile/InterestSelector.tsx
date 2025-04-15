@@ -1,10 +1,11 @@
+
 import { Interest } from "@/types";
 import { useState, useEffect } from "react";
 import { INTERESTS, INTEREST_CATEGORIES } from "@/services/mockData";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface InterestSelectorProps {
@@ -13,6 +14,7 @@ interface InterestSelectorProps {
   onInterestsChange?: (interests: string[]) => void;
   availableInterests?: Interest[];
   className?: string;
+  showContinueOnly?: boolean;
 }
 
 const InterestSelector = ({ 
@@ -20,7 +22,8 @@ const InterestSelector = ({
   selectedInterests: externalSelectedInterests,
   onInterestsChange,
   availableInterests = INTERESTS,
-  className
+  className,
+  showContinueOnly = false
 }: InterestSelectorProps) => {
   const { user, updateUserInterests } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>(externalSelectedInterests || []);
@@ -58,11 +61,8 @@ const InterestSelector = ({
   });
 
   const handleSave = () => {
-    if (onInterestsChange) {
-      onInterestsChange(selectedInterests);
-    } else {
-      updateUserInterests(selectedInterests);
-    }
+    // Save selected interests to user profile
+    updateUserInterests(selectedInterests);
     
     if (onComplete) onComplete();
   };
@@ -138,11 +138,15 @@ const InterestSelector = ({
       </div>
 
       <Button 
-        className="w-full" 
+        className="w-full bg-purple-600 hover:bg-purple-700" 
         onClick={handleSave}
         disabled={selectedInterests.length === 0}
       >
-        Save Interests
+        {showContinueOnly ? (
+          <>Continue <ChevronRight className="ml-2 h-4 w-4" /></>
+        ) : (
+          "Save Interests"
+        )}
       </Button>
     </div>
   );
