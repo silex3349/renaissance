@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Event } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,8 @@ interface EventListViewProps {
 }
 
 const EventListView = ({ events }: EventListViewProps) => {
-  const { user } = useAuth();
+  const { user, joinEvent } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [locationPromptVisible, setLocationPromptVisible] = useState(false);
@@ -46,6 +48,14 @@ const EventListView = ({ events }: EventListViewProps) => {
 
   const handleLocationDetected = () => {
     setLocationPromptVisible(false);
+  };
+
+  const handleJoinEvent = (eventId: string) => {
+    if (joinEvent) {
+      joinEvent(eventId);
+      // Navigate to event detail page
+      navigate(`/events/${eventId}`);
+    }
   };
 
   return (
@@ -99,6 +109,7 @@ const EventListView = ({ events }: EventListViewProps) => {
                   "Events Near You"
                 }
                 compact={true}
+                onJoinEvent={handleJoinEvent}
               />
             </TabsContent>
           </Tabs>

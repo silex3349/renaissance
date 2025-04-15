@@ -4,7 +4,6 @@ import EventCard from "./EventCard";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { MapPin, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ interface EventListProps {
   showMap?: boolean;
   onToggleMap?: () => void;
   compact?: boolean; // Added compact prop
+  onJoinEvent?: (eventId: string) => void; // Added callback prop instead of direct navigation
 }
 
 const EventList = ({ 
@@ -24,10 +24,10 @@ const EventList = ({
   description,
   showMap,
   onToggleMap,
-  compact = false // Default value
+  compact = false, // Default value
+  onJoinEvent
 }: EventListProps) => {
-  const navigate = useNavigate();
-  const { user, joinEvent } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [joiningEvent, setJoiningEvent] = useState<string | null>(null);
 
@@ -42,7 +42,13 @@ const EventList = ({
     }
 
     setJoiningEvent(eventId);
-    joinEvent(eventId);
+    
+    // Use the callback if provided, otherwise use the internal joinEvent method
+    if (onJoinEvent) {
+      onJoinEvent(eventId);
+    } else if (user.joinEvent) {
+      user.joinEvent(eventId);
+    }
     
     toast({
       title: "Event joined!",
