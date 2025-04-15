@@ -138,204 +138,166 @@ const EventDetail = ({ event, attendees }: EventDetailProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="px-4 py-6 space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"
           onClick={handleBackClick}
+          className="flex-shrink-0"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-3xl font-bold">{event.title}</h1>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              Event Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-              <img
-                src={getBackgroundImage()}
-                alt={event.title}
-                className="object-cover w-full h-full"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {format(new Date(event.dateTime), "EEEE, MMMM d, yyyy")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {format(new Date(event.dateTime), "h:mm a")} to{" "}
-                  {format(
-                    new Date(
-                      new Date(event.dateTime).getTime() + 2 * 60 * 60 * 1000
-                    ),
-                    "h:mm a"
-                  )}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {event.address || (event.location.city ? event.location.city : "Unknown location")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {event.attendees.length} people attending
-                </span>
-              </div>
-            </div>
-
-            <div className="pt-4">
-              <h3 className="text-lg font-medium mb-2">About this event</h3>
-              <p className="text-muted-foreground whitespace-pre-line">
-                {event.description}
-              </p>
-            </div>
-
-            <div className="pt-2">
-              <h3 className="text-lg font-medium mb-2">Interests</h3>
-              <div className="flex flex-wrap gap-2">
-                {event.interests.map((interest) => (
-                  <Badge key={interest.id} variant="secondary">
-                    {interest.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <div className="flex w-full gap-2">
-              <Button
-                className="flex-1"
-                variant={isAttending ? "destructive" : "default"}
-                onClick={toggleAttendance}
-              >
-                {isAttending ? "Leave Event" : "Join Event"}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={toggleBookmark}
-                className={isBookmarked ? "text-primary" : ""}
-              >
-                <BookmarkPlus className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={toggleReminder}
-                className={isReminded ? "text-primary" : ""}
-              >
-                {isReminded ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={shareEvent}
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Attendees
-              </CardTitle>
-              <CardDescription>
-                {event.attendees.length} people going to this event
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {attendeesVisible ? (
-                  attendees.length > 0 ? (
-                    attendees.map((attendee: UserType) => (
-                      <div
-                        key={attendee.id}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
-                      >
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-primary font-medium">
-                            {attendee.email && attendee.email[0] ? attendee.email[0].toUpperCase() : "?"}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Anonymous User</p>
-                          <p className="text-xs text-muted-foreground">
-                            {attendee.interests ? attendee.interests.length : 0} shared interests
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No one has joined this event yet. Be the first!
-                    </p>
-                  )
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setAttendeesVisible(true)}
-                  >
-                    View Attendees
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Similar People
-              </CardTitle>
-              <CardDescription>
-                People with similar interests attending this event
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="relative h-[300px] w-full">
-                {attendees
-                  .filter(u => u.id !== user?.id)
-                  .slice(0, 3)
-                  .map((matchUser, index) => (
-                    <SwipeUserCard
-                      key={matchUser.id}
-                      user={matchUser}
-                      isActive={index === 0}
-                      onSwipe={() => {}}
-                    />
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex-1">
+          <h1 className="text-2xl md:text-3xl font-bold line-clamp-1">{event.title}</h1>
         </div>
       </div>
+
+      <Card className="overflow-hidden border rounded-xl">
+        <div className="w-full aspect-video relative">
+          <img
+            src={getBackgroundImage()}
+            alt={event.title}
+            className="object-cover w-full h-full"
+          />
+        </div>
+        
+        <div className="p-4 space-y-5">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <span>
+                {format(new Date(event.dateTime), "EEEE, MMMM d, yyyy")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <span>
+                {format(new Date(event.dateTime), "h:mm a")} to{" "}
+                {format(
+                  new Date(
+                    new Date(event.dateTime).getTime() + 2 * 60 * 60 * 1000
+                  ),
+                  "h:mm a"
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <span>
+                {event.address || (event.location.city ? event.location.city : "Unknown location")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <span>
+                {event.attendees.length} people attending
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {event.interests.map((interest) => (
+              <Badge key={interest.id} variant="secondary" className="rounded-full">
+                {interest.name}
+              </Badge>
+            ))}
+          </div>
+          
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Button
+              className="flex-1"
+              variant={isAttending ? "destructive" : "default"}
+              onClick={toggleAttendance}
+            >
+              {isAttending ? "Leave Event" : "Join Event"}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleBookmark}
+              className={isBookmarked ? "text-primary" : ""}
+            >
+              <BookmarkPlus className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleReminder}
+              className={isReminded ? "text-primary" : ""}
+            >
+              {isReminded ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={shareEvent}
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">About this event</h2>
+        <p className="text-muted-foreground whitespace-pre-line">
+          {event.description}
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Attendees
+          </CardTitle>
+          <CardDescription>
+            {event.attendees.length} people going to this event
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {attendeesVisible ? (
+              attendees.length > 0 ? (
+                attendees.map((attendee: UserType) => (
+                  <div
+                    key={attendee.id}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-primary font-medium">
+                        {attendee.email && attendee.email[0] ? attendee.email[0].toUpperCase() : "?"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Anonymous User</p>
+                      <p className="text-xs text-muted-foreground">
+                        {attendee.interests ? attendee.interests.length : 0} shared interests
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No one has joined this event yet. Be the first!
+                </p>
+              )
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setAttendeesVisible(true)}
+              >
+                View Attendees
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

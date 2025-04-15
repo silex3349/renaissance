@@ -14,7 +14,7 @@ const Header = () => {
   };
 
   return (
-    <header className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="renaissance-container py-3 flex justify-between items-center">
         <Link to="/" className="font-bold text-xl">
           Renaissance
@@ -43,10 +43,12 @@ const Header = () => {
         </nav>
         
         {user ? (
-          <div className="hidden sm:flex items-center space-x-4">
+          <div className="flex items-center space-x-4">
             <NotificationCenter />
-            <Link to="/profile">Profile</Link>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
+            <div className="hidden sm:block">
+              <Link to="/profile">Profile</Link>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex">
               Logout
             </Button>
           </div>
@@ -61,8 +63,7 @@ const Header = () => {
         
         {user && (
           <Sheet>
-            <div className="flex items-center sm:hidden">
-              <NotificationCenter />
+            <div className="sm:hidden flex items-center">
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-5 w-5" />

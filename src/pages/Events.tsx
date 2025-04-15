@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -219,7 +220,7 @@ const Events = () => {
   
   if (isDetailView) {
     return (
-      <div className="renaissance-container py-8">
+      <div className="renaissance-container">
         {detailType === "event" && currentEvent ? (
           <EventDetail event={currentEvent} attendees={attendees} />
         ) : currentGroup ? (
@@ -385,7 +386,7 @@ const Events = () => {
         )}
         
         {viewMode === "discover" && (
-          <div className="relative h-[600px] w-full max-w-lg mx-auto">
+          <div className="relative h-[450px] max-h-[65vh] w-full max-w-lg mx-auto">
             {isLoading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-card rounded-xl">
                 <div className="text-center">
@@ -451,13 +452,15 @@ const Events = () => {
           onOpenChange={setShowCreateDialog}
         />
         
-        <Button 
-          className="fixed right-4 bottom-20 rounded-full shadow-lg z-20 flex items-center gap-2"
-          onClick={() => viewMode === "groups" ? setShowCreateDialog(true) : setShowCreateEventSheet(true)}
-        >
-          <Plus className="h-5 w-5" />
-          {viewMode === "groups" ? "Create Group" : "Create Event"}
-        </Button>
+        {viewMode !== "discover" && (
+          <Button 
+            className="fixed right-4 bottom-20 rounded-full shadow-lg z-20 flex items-center gap-2"
+            onClick={() => viewMode === "groups" ? setShowCreateDialog(true) : setShowCreateEventSheet(true)}
+          >
+            <Plus className="h-5 w-5" />
+            {viewMode === "groups" ? "Create Group" : "Create Event"}
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -117,7 +117,7 @@ const Discover = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-purple-900 to-purple-800 min-h-screen flex flex-col">
+    <div className="bg-gradient-to-b from-purple-900 to-purple-800 min-h-[calc(100vh-64px)] flex flex-col">
       <div className="max-w-md mx-auto w-full py-6 px-4 flex flex-1 flex-col">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white">Discover</h1>
@@ -144,11 +144,11 @@ const Discover = () => {
           </div>
         ) : filteredUsers.length > 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="relative w-full h-[500px] max-h-[70vh]">
+            <div className="relative w-full h-[450px] max-h-[65vh]">
               {filteredUsers.slice(0, 3).map((user, index) => (
                 <div 
                   key={user.id} 
-                  className="absolute top-0 left-0 w-full h-full"
+                  className="absolute top-0 left-0 w-full h-full cursor-pointer"
                   onClick={() => handleUserCardClick(user.id)}
                 >
                   <SwipeUserCard

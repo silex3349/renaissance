@@ -13,6 +13,7 @@ import ProfileEdit from "@/pages/ProfileEdit";
 import Chats from "@/pages/Chats";
 import Groups from "@/pages/Groups";
 import NotFound from "@/pages/NotFound";
+import Discover from "@/pages/Discover";
 import "./App.css";
 
 // Create a react-query client
@@ -46,8 +47,10 @@ function App() {
                 <Route path="auth" element={<Auth />} />
                 <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+                <Route path="profile/:id" element={<Profile />} />
                 <Route path="events/:id" element={<Events />} />
                 <Route path="events/create" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+                <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
                 <Route path="chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
                 <Route path="groups" element={<Groups />} />
                 <Route path="groups/:id" element={<Groups />} />
