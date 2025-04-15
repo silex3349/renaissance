@@ -11,26 +11,32 @@ import { MapPin, Calendar, Edit2, Clock, Settings, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { Event, User } from "@/types";
 import { MOCK_EVENTS, MOCK_USERS } from "@/services/mockData";
+import { supabase } from "@/lib/supabaseClient";
 
 const Profile = () => {
   const { id } = useParams();
-  const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<User | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [joinedEvents, setJoinedEvents] = useState<Event[]>([]);
   
-  const isOwnProfile = !id || (user && id === user.id);
+  const isOwnProfile = !id || (authUser && id === authUser.id);
   
   useEffect(() => {
     const fetchProfile = async () => {
       setIsLoading(true);
       try {
+        // First try to get Supabase user data
+        const { data: { user } } = await supabase.auth.getUser();
+        setSupabaseUser(user);
+        
         let profileData: User | null = null;
         
         // If viewing own profile or no ID provided, use current user
-        if (isOwnProfile && user) {
-          profileData = user;
+        if (isOwnProfile && authUser) {
+          profileData = authUser;
         } 
         // If viewing another user's profile
         else if (id) {
@@ -64,7 +70,7 @@ const Profile = () => {
     };
     
     fetchProfile();
-  }, [id, user, isOwnProfile]);
+  }, [id, authUser, isOwnProfile]);
   
   if (isLoading) {
     return (
@@ -74,7 +80,10 @@ const Profile = () => {
     );
   }
   
-  if (!profile) {
+  // Use Supabase user data if available, otherwise fall back to legacy data
+  const displayUser = supabaseUser || profile;
+  
+  if (!displayUser) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh]">
         <h2 className="text-2xl font-bold">Profile Not Found</h2>
@@ -89,6 +98,28 @@ const Profile = () => {
       </div>
     );
   }
+  
+  // Handle different profile data structures (Supabase vs existing)
+  const userName = supabaseUser 
+    ? (supabaseUser.user_metadata?.username || supabaseUser.email.split("@")[0]) 
+    : (profile?.name || "Anonymous User");
+    
+  const userBio = supabaseUser
+    ? (supabaseUser.user_metadata?.bio || "No bio provided.")
+    : (profile?.bio || "No bio provided.");
+    
+  const userEmail = supabaseUser ? supabaseUser.email : profile?.email;
+  
+  const userJoinDate = supabaseUser 
+    ? new Date(supabaseUser.created_at) 
+    : (profile?.createdAt || new Date());
+  
+  const handleLogout = async () => {
+    if (supabaseUser) {
+      await supabase.auth.signOut();
+    }
+    logout();
+  };
   
   return (
     <div className="container py-8">
@@ -115,7 +146,7 @@ const Profile = () => {
               <Button 
                 variant="outline" 
                 size="icon"
-                onClick={logout}
+                onClick={handleLogout}
                 className="text-red-500 hover:text-red-700 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4" />
@@ -125,21 +156,28 @@ const Profile = () => {
           
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <Avatar className="w-24 h-24 border-2 border-primary">
-              <AvatarImage src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" />
+              {supabaseUser ? (
+                <AvatarImage 
+                  src={`https://api.dicebear.com/7.x/big-ears-neutral/svg?seed=${userEmail}`} 
+                  alt={userName} 
+                />
+              ) : (
+                <AvatarImage src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" />
+              )}
               <AvatarFallback>
-                {profile.name 
-                  ? profile.name.split(" ").map(n => n[0]).join("").toUpperCase()
-                  : profile.email.substring(0, 2).toUpperCase()}
+                {userName 
+                  ? userName.split(" ").map(n => n[0]).join("").toUpperCase()
+                  : userEmail.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
             <div className="text-center sm:text-left">
               <CardTitle className="text-2xl font-bold">
-                {profile.name || "Anonymous User"}
+                {userName}
               </CardTitle>
               
               <CardDescription className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-1">
-                {profile.location && (
+                {profile?.location && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
                     {profile.location.city}, {profile.location.country}
@@ -148,7 +186,7 @@ const Profile = () => {
                 
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  Joined {format(new Date(profile.createdAt), "MMMM yyyy")}
+                  Joined {format(userJoinDate, "MMMM yyyy")}
                 </span>
               </CardDescription>
             </div>
@@ -167,12 +205,12 @@ const Profile = () => {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-medium text-sm mb-1">Bio</h3>
-                  <p className="text-muted-foreground">{profile.bio || "No bio provided."}</p>
+                  <p className="text-muted-foreground">{userBio}</p>
                 </div>
                 
                 <div>
                   <h3 className="font-medium text-sm mb-1">Email</h3>
-                  <p className="text-muted-foreground">{profile.email}</p>
+                  <p className="text-muted-foreground">{userEmail}</p>
                 </div>
               </div>
             </TabsContent>
@@ -215,7 +253,7 @@ const Profile = () => {
               <div className="space-y-4">
                 <h3 className="font-medium text-sm">Interests</h3>
                 
-                {profile.interests && profile.interests.length > 0 ? (
+                {profile?.interests && profile.interests.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {profile.interests.map(interest => (
                       <Badge key={interest.id} variant="secondary" className="rounded-full">
