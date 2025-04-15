@@ -1,203 +1,240 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import InterestSelector from "@/components/profile/InterestSelector";
-import LocationDetection from "@/components/location/LocationDetection";
-import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
-import { Settings, Search, Plus, MessageSquare, Edit } from "lucide-react";
-import { MOCK_EVENTS } from "@/services/mockData";
-import { Event } from "@/types";
-import EventCard from "@/components/events/EventCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MapPin, Calendar, Edit2, Clock, Settings, LogOut } from "lucide-react";
+import { format } from "date-fns";
+import { Event, User } from "@/types";
+import { MOCK_EVENTS, MOCK_USERS } from "@/services/mockData";
 
 const Profile = () => {
-  const { user, updateUserAgeRange } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>("saved");
-  const [savedEvents, setSavedEvents] = useState<Event[]>([]);
+  const { id } = useParams();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
-
+  const [profile, setProfile] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [joinedEvents, setJoinedEvents] = useState<Event[]>([]);
+  
+  const isOwnProfile = !id || (user && id === user.id);
+  
   useEffect(() => {
-    // Responsive layout detection
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 768);
+    const fetchProfile = async () => {
+      setIsLoading(true);
+      try {
+        let profileData: User | null = null;
+        
+        // If viewing own profile or no ID provided, use current user
+        if (isOwnProfile && user) {
+          profileData = user;
+        } 
+        // If viewing another user's profile
+        else if (id) {
+          // Simulate API call to fetch profile by ID
+          await new Promise(resolve => setTimeout(resolve, 500));
+          profileData = MOCK_USERS.find(u => u.id === id) || null;
+        }
+        
+        setProfile(profileData);
+        
+        // Fetch events this user is attending
+        if (profileData) {
+          const events = MOCK_EVENTS.filter(event => 
+            profileData?.joinedEvents.includes(event.id)
+          );
+          setJoinedEvents(events);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    // Simulate loading saved events
-    // In a real app, this would come from an API or user data
-    setSavedEvents(MOCK_EVENTS.slice(0, 4) as Event[]);
-  }, []);
-
-  // Save login state to localStorage
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("isLoggedIn", "true");
-    }
-  }, [user]);
-
-  if (!user) {
+    fetchProfile();
+  }, [id, user, isOwnProfile]);
+  
+  if (isLoading) {
     return (
-      <div className="renaissance-container py-8 text-center">
-        <h1 className="text-2xl font-semibold mb-4">Profile Not Available</h1>
-        <p className="text-muted-foreground mb-4">Please sign in to view your profile.</p>
-        <Button asChild>
-          <a href="/signin">Sign In</a>
+      <div className="flex justify-center items-center min-h-[70vh]">
+        <div className="animate-pulse text-muted-foreground">Loading profile...</div>
+      </div>
+    );
+  }
+  
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh]">
+        <h2 className="text-2xl font-bold">Profile Not Found</h2>
+        <p className="text-muted-foreground">The profile you're looking for doesn't exist or was removed.</p>
+        <Button 
+          variant="default" 
+          className="mt-4"
+          onClick={() => navigate("/")}
+        >
+          Go to Home Page
         </Button>
       </div>
     );
   }
-
-  const handleAgeRangeChange = (ageRange: { min: number; max: number }) => {
-    updateUserAgeRange(JSON.stringify(ageRange));
-    
-    // Save settings to localStorage
-    localStorage.setItem("userAgeRange", JSON.stringify(ageRange));
-  };
-
-  // Get user initials for avatar fallback
-  const getUserInitials = () => {
-    if (!user.name) return "U";
-    return user.name.split(" ").map(n => n[0]).join("").toUpperCase();
-  };
   
-  const goToSettings = () => {
-    navigate("/profile/edit");
-  };
-
   return (
-    <div className="bg-background min-h-screen pb-20">
-      {/* Header section with avatar and basic info */}
-      <div className="pt-6 pb-4 px-4">
-        <div className="flex justify-between items-center mb-2">
-          <Button variant="ghost" size="icon" onClick={goToSettings}>
-            <Settings className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <div className="flex flex-col items-center text-center">
-          <Avatar className="h-24 w-24 mb-4">
-            <AvatarImage src={user.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=user"} alt={user.name || "User"} />
-            <AvatarFallback>{getUserInitials()}</AvatarFallback>
-          </Avatar>
-          
-          <h1 className="text-2xl font-bold mb-1">{user.name || "User Name"}</h1>
-          <p className="text-muted-foreground mb-2">{user.email}</p>
-          
-          {user.bio && (
-            <p className="text-sm text-center max-w-xs mx-auto mb-3">{user.bio}</p>
+    <div className="container py-8">
+      <Card className="shadow-md border">
+        <CardHeader className="relative pb-0">
+          {isOwnProfile && (
+            <div className="absolute right-6 top-6 flex gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => navigate("/profile/edit")}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => navigate("/profile/settings")}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={logout}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           )}
           
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-            <div>
-              <span className="font-semibold text-foreground">{user.joinedEvents?.length || 0}</span> events
-            </div>
-            <div>
-              <span className="font-semibold text-foreground">{user.matchedUsers?.length || 0}</span> connections
-            </div>
-            <div>
-              <span className="font-semibold text-foreground">{user.joinedGroups?.length || 0}</span> groups
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Avatar className="w-24 h-24 border-2 border-primary">
+              <AvatarImage src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" />
+              <AvatarFallback>
+                {profile.name 
+                  ? profile.name.split(" ").map(n => n[0]).join("").toUpperCase()
+                  : profile.email.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="text-center sm:text-left">
+              <CardTitle className="text-2xl font-bold">
+                {profile.name || "Anonymous User"}
+              </CardTitle>
+              
+              <CardDescription className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-1">
+                {profile.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {profile.location.city}, {profile.location.country}
+                  </span>
+                )}
+                
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Joined {format(new Date(profile.createdAt), "MMMM yyyy")}
+                </span>
+              </CardDescription>
             </div>
           </div>
-          
-          <Button 
-            variant="outline" 
-            className="mb-6" 
-            onClick={() => navigate("/profile/edit")}
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Profile
-          </Button>
-          
-          <div className="w-full max-w-md">
-            <Tabs defaultValue="saved" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-1 w-full">
-                <TabsTrigger value="saved">Saved & Watchlist</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="saved" className="pt-4">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-semibold">Saved Events</h2>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Search className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {savedEvents.length > 0 ? (
-                    <div className={`grid ${isDesktop ? 'md:grid-cols-3 sm:grid-cols-2' : 'grid-cols-2'} gap-4`}>
-                      {savedEvents.map(event => (
-                        <div 
-                          key={event.id} 
-                          className="aspect-square overflow-hidden rounded-xl relative group cursor-pointer"
-                          onClick={() => navigate(`/events/${event.id}`)}
-                        >
+        </CardHeader>
+        
+        <CardContent className="pt-6">
+          <Tabs defaultValue="about" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="about">About</TabsTrigger>
+              <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger value="interests">Interests</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="about" className="pt-4">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium text-sm mb-1">Bio</h3>
+                  <p className="text-muted-foreground">{profile.bio || "No bio provided."}</p>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-sm mb-1">Email</h3>
+                  <p className="text-muted-foreground">{profile.email}</p>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="events" className="pt-4">
+              <div className="space-y-4">
+                <h3 className="font-medium text-sm">Upcoming Events</h3>
+                
+                {joinedEvents.length > 0 ? (
+                  <div className="grid gap-4">
+                    {joinedEvents.map(event => (
+                      <Card key={event.id} className="overflow-hidden border-0 shadow-sm">
+                        <div className="flex flex-col sm:flex-row">
                           <div 
-                            className="w-full h-full bg-cover bg-center"
-                            style={{ 
-                              backgroundImage: event.imageUrl 
-                                ? `url(${event.imageUrl})` 
-                                : 'url(https://images.unsplash.com/photo-1528605248644-14dd04022da1)' 
-                            }}
-                          >
-                            <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all duration-200"></div>
-                            <div className="absolute bottom-2 left-2 right-2">
-                              <p className="text-white text-sm font-medium truncate">{event.title}</p>
+                            className="w-full sm:w-24 h-24 bg-cover bg-center"
+                            style={{ backgroundImage: `url(https://picsum.photos/seed/${event.id}/200/200)` }}
+                          ></div>
+                          <div className="p-4">
+                            <h4 className="font-medium">{event.title}</h4>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{format(new Date(event.dateTime), "EEE, MMM d, yyyy • h:mm a")}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                              <MapPin className="h-3 w-3" />
+                              <span>{event.location.city}</span>
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No saved events yet</p>
-                      <Button variant="outline" className="mt-4" onClick={() => navigate("/events")}>
-                        Discover Events
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      </div>
-      
-      {/* Bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-2">
-        <div className="flex justify-around items-center">
-          <a href="/events" className="flex flex-col items-center p-2 text-muted-foreground hover:text-foreground">
-            <Search className="h-6 w-6" />
-            <span className="text-xs mt-1">Discover</span>
-          </a>
-          <a href="/events/create" className="flex flex-col items-center p-2 text-muted-foreground hover:text-foreground">
-            <Plus className="h-6 w-6" />
-            <span className="text-xs mt-1">Create</span>
-          </a>
-          <a href="/chats" className="flex flex-col items-center p-2 text-muted-foreground hover:text-foreground">
-            <MessageSquare className="h-6 w-6" />
-            <span className="text-xs mt-1">Messages</span>
-          </a>
-          <a href="/profile" className="flex flex-col items-center p-2 text-foreground">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={user.avatar} alt={user.name || "User"} />
-              <AvatarFallback className="text-xs">{getUserInitials()}</AvatarFallback>
-            </Avatar>
-            <span className="text-xs mt-1">Profile</span>
-          </a>
-        </div>
-      </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">Not attending any upcoming events.</p>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="interests" className="pt-4">
+              <div className="space-y-4">
+                <h3 className="font-medium text-sm">Interests</h3>
+                
+                {profile.interests && profile.interests.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {profile.interests.map(interest => (
+                      <Badge key={interest.id} variant="secondary" className="rounded-full">
+                        {interest.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No interests added yet.</p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        
+        {isOwnProfile && (
+          <CardFooter className="flex justify-center sm:justify-start pt-0">
+            <Button 
+              variant="default" 
+              className="mt-4"
+              onClick={() => navigate("/profile/edit")}
+            >
+              Edit Profile
+            </Button>
+          </CardFooter>
+        )}
+      </Card>
     </div>
   );
 };
