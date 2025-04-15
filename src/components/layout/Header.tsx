@@ -42,80 +42,84 @@ const Header = () => {
           )}
         </nav>
         
-        {user ? (
-          <div className="flex items-center space-x-4">
-            <NotificationCenter />
-            <div className="hidden sm:block">
-              <Link to="/profile">Profile</Link>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex">
-              Logout
-            </Button>
-          </div>
-        ) : (
-          <div className="hidden sm:flex items-center space-x-4">
-            <Link to="/auth">Sign In</Link>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/auth">Sign Up</Link>
-            </Button>
-          </div>
-        )}
-        
-        {user && (
-          <Sheet>
-            <div className="sm:hidden flex items-center">
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-            </div>
-            <SheetContent side="right">
-              <div className="py-4">
-                <ul className="space-y-2">
-                  <li>
-                    <Link to="/" className="block p-2 hover:bg-accent rounded-md">
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/events" className="block p-2 hover:bg-accent rounded-md">
-                      Events
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/groups" className="block p-2 hover:bg-accent rounded-md">
-                      Groups
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/discover" className="block p-2 hover:bg-accent rounded-md">
-                      Discover
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/chats" className="block p-2 hover:bg-accent rounded-md">
-                      Chats
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/profile" className="block p-2 hover:bg-accent rounded-md">
-                      Profile
-                    </Link>
-                  </li>
-                  <li>
-                    <button
-                      className="block w-full text-left p-2 hover:bg-accent rounded-md"
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </button>
-                  </li>
-                </ul>
+        <div className="flex items-center space-x-4">
+          {/* Always show the notification center */}
+          <NotificationCenter />
+          
+          {user ? (
+            <>
+              <div className="hidden sm:block">
+                <Link to="/profile">Profile</Link>
               </div>
-            </SheetContent>
-          </Sheet>
-        )}
+              <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex">
+                Logout
+              </Button>
+            </>
+          ) : (
+            <div className="hidden sm:flex items-center space-x-4">
+              <Link to="/auth">Sign In</Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Sign Up</Link>
+              </Button>
+            </div>
+          )}
+          
+          {user && (
+            <Sheet>
+              <div className="sm:hidden flex items-center">
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+              </div>
+              <SheetContent side="right">
+                <div className="py-4">
+                  <ul className="space-y-2">
+                    <li>
+                      <Link to="/" className="block p-2 hover:bg-accent rounded-md">
+                        Home
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/events" className="block p-2 hover:bg-accent rounded-md">
+                        Events
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/groups" className="block p-2 hover:bg-accent rounded-md">
+                        Groups
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/discover" className="block p-2 hover:bg-accent rounded-md">
+                        Discover
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/chats" className="block p-2 hover:bg-accent rounded-md">
+                        Chats
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/profile" className="block p-2 hover:bg-accent rounded-md">
+                        Profile
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        className="block w-full text-left p-2 hover:bg-accent rounded-md"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Lock, Users, ArrowLeft, X, Tag, Info } from "lucide-react";
+import { Lock, Users, ArrowLeft, Tag, Info } from "lucide-react";
 import InterestSelector from "@/components/profile/InterestSelector";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -93,18 +93,13 @@ const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 h-[85vh] max-h-[700px] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center p-4 border-b">
           <DialogClose asChild>
             <Button variant="ghost" size="icon" onClick={handleClose}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </DialogClose>
-          <DialogTitle className="text-xl font-bold">Create Group</DialogTitle>
-          <DialogClose asChild>
-            <Button variant="ghost" size="icon" onClick={handleClose}>
-              <X className="h-5 w-5" />
-            </Button>
-          </DialogClose>
+          <DialogTitle className="text-xl font-bold ml-4">Create Group</DialogTitle>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
@@ -168,7 +163,7 @@ const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps) => {
                           Interests
                         </FormLabel>
                         <FormControl>
-                          <div className="max-h-[200px] overflow-y-auto bg-background rounded-md p-2 border">
+                          <div className="bg-background rounded-md p-2 border">
                             <InterestSelector
                               selectedInterests={field.value}
                               onInterestsChange={field.onChange}

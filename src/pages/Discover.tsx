@@ -98,7 +98,7 @@ const Discover = () => {
   const handleSwipe = (direction: "left" | "right", swipedUser: User) => {
     setDisplayedUserIds((prev) => [...prev, swipedUser.id]);
     setFilteredUsers((prev) => prev.filter((u) => u.id !== swipedUser.id));
-
+    
     // Log the swipe (for demo purposes)
     console.log(`Swiped ${direction} on user ${swipedUser.id}`);
     
@@ -118,9 +118,9 @@ const Discover = () => {
 
   return (
     <div className="bg-gradient-to-b from-purple-900 to-purple-800 min-h-[calc(100vh-64px)] flex flex-col">
-      <div className="max-w-md mx-auto w-full py-6 px-4 flex flex-1 flex-col">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white">Discover</h1>
+      <div className="max-w-md mx-auto w-full py-4 px-4 flex flex-1 flex-col">
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-white">Discover</h1>
           <p className="text-purple-200">
             Find people with similar interests
           </p>
@@ -129,7 +129,7 @@ const Discover = () => {
         {isLoadingUsers ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-white">
-              <RefreshCw className="animate-spin h-10 w-10 mx-auto mb-4" />
+              <RefreshCw className="animate-spin h-8 w-8 mx-auto mb-3" />
               <p>Finding people for you...</p>
             </div>
           </div>
@@ -144,7 +144,7 @@ const Discover = () => {
           </div>
         ) : filteredUsers.length > 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="relative w-full h-[450px] max-h-[65vh]">
+            <div className="relative w-full h-[400px] max-h-[60vh]">
               {filteredUsers.slice(0, 3).map((user, index) => (
                 <div 
                   key={user.id} 
