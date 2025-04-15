@@ -6,7 +6,11 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const LocationDetection = () => {
+interface LocationDetectionProps {
+  onComplete?: () => void;
+}
+
+const LocationDetection = ({ onComplete }: LocationDetectionProps) => {
   const { updateUserLocation } = useAuth();
   const { toast } = useToast();
   const [isDetecting, setIsDetecting] = useState(false);
@@ -35,8 +39,12 @@ const LocationDetection = () => {
         });
         setIsDetecting(false);
         
-        // Navigate to events page after detection
-        navigate("/", { replace: true });
+        // Handle completion callback or navigate
+        if (onComplete) {
+          onComplete();
+        } else {
+          navigate("/", { replace: true });
+        }
       },
       (error) => {
         console.error("Geolocation error:", error);
@@ -93,7 +101,7 @@ const LocationDetection = () => {
         </Button>
         
         <button
-          onClick={() => navigate("/", { replace: true })}
+          onClick={() => onComplete ? onComplete() : navigate("/", { replace: true })}
           className="mt-4 text-sm text-gray-500 hover:text-gray-700"
         >
           Skip for now
