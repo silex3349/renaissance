@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +9,9 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
+  signUpWithSocial: (userData: Partial<User>) => Promise<void>;
   logout: () => void;
+  signOut: () => void;
   updateUserProfile: (data: Partial<User>) => void;
   joinEvent: (eventId: string) => void;
   leaveEvent: (eventId: string) => void;
@@ -19,7 +20,6 @@ interface AuthContextType {
   updateUserAgeRange: (ageRange: string) => void;
   updateUserWatchlist: (watchlist: any) => void;
   createGroup: (groupData: any) => void;
-  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,6 +109,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           privacy: "public",
         },
         createdAt: new Date(),
+      };
+      
+      setUser(newUser);
+      navigate("/profile");
+      toast({
+        title: "Account created!",
+        description: "Welcome to Renaissance!",
+      });
+    } catch (error) {
+      toast({
+        title: "Sign up failed",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signUpWithSocial = async (userData: Partial<User>) => {
+    setIsLoading(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newUser: User = {
+        id: userData.id || `user_${Date.now()}`,
+        email: userData.email || `user_${Date.now()}@example.com`,
+        name: userData.name || "New User",
+        bio: userData.bio || "",
+        profileImageUrl: userData.profileImageUrl,
+        interests: userData.interests || [],
+        joinedEvents: userData.joinedEvents || [],
+        matchedUsers: userData.matchedUsers || [],
+        joinedGroups: userData.joinedGroups || [],
+        location: userData.location || null,
+        createdAt: new Date(),
+        settings: userData.settings || {
+          notifications: true,
+          privacy: "public",
+        },
       };
       
       setUser(newUser);
@@ -256,6 +298,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isLoading,
         signIn,
         signUp,
+        signUpWithSocial,
         logout,
         updateUserProfile,
         joinEvent,

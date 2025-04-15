@@ -1,10 +1,10 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { GoogleAuthProviderWrapper } from "@/providers/GoogleAuthProvider";
 import Layout from "@/components/layout/Layout";
 import Events from "@/pages/Events";
 import Auth from "@/pages/Auth";
@@ -45,28 +45,30 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <NotificationProvider>
-        <Router>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Events />} />
-                <Route path="auth" element={<Auth />} />
-                <Route path="location" element={<LocationDetection />} />
-                <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
-                <Route path="profile/:id" element={<Profile />} />
-                <Route path="events/:id" element={<Events />} />
-                <Route path="events/create" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-                <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
-                <Route path="chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
-                <Route path="groups" element={<Groups />} />
-                <Route path="groups/:id" element={<Groups />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-            <Toaster />
-          </AuthProvider>
-        </Router>
+        <GoogleAuthProviderWrapper>
+          <Router>
+            <AuthProvider>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Events />} />
+                  <Route path="auth" element={<Auth />} />
+                  <Route path="location" element={<LocationDetection />} />
+                  <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+                  <Route path="profile/:id" element={<Profile />} />
+                  <Route path="events/:id" element={<Events />} />
+                  <Route path="events/create" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+                  <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
+                  <Route path="chats" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
+                  <Route path="groups" element={<Groups />} />
+                  <Route path="groups/:id" element={<Groups />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+              <Toaster />
+            </AuthProvider>
+          </Router>
+        </GoogleAuthProviderWrapper>
       </NotificationProvider>
     </QueryClientProvider>
   );
