@@ -36,6 +36,11 @@ const Onboarding = () => {
     handleNext();
   };
 
+  const handleLocationComplete = () => {
+    // Navigate to the home/events page after location step
+    navigate("/");
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 bg-gradient-to-b from-purple-900 to-purple-800">
       <div className="w-full max-w-md">
@@ -116,7 +121,7 @@ const Onboarding = () => {
                 </div>
                 
                 <div className="pb-4">
-                  <LocationDetection onComplete={handleNext} />
+                  <LocationDetection onComplete={handleLocationComplete} />
                 </div>
               </div>
             )}
