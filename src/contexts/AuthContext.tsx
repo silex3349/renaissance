@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { User, Interest, Location } from "@/types";
+import { User, Interest } from "@/types";
 import { MOCK_USERS } from "@/services/mockData";
 
 interface AuthContextType {
@@ -14,6 +13,12 @@ interface AuthContextType {
   updateUserProfile: (data: Partial<User>) => void;
   joinEvent: (eventId: string) => void;
   leaveEvent: (eventId: string) => void;
+  updateUserInterests: (interests: string[]) => void;
+  updateUserLocation: (latitude: number, longitude: number) => void;
+  updateUserAgeRange: (ageRange: string) => void;
+  updateUserWatchlist: (watchlist: any) => void;
+  createGroup: (groupData: any) => void;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,7 +37,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Simulate checking for a stored session
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -41,7 +45,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  // Update local storage when user changes
   useEffect(() => {
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
@@ -52,10 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find user in mock data
       const foundUser = MOCK_USERS.find(user => user.email === email);
       
       if (!foundUser) {
@@ -84,17 +85,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Check if user exists
       const userExists = MOCK_USERS.some(user => user.email === email);
       
       if (userExists) {
         throw new Error("Email already in use");
       }
       
-      // Create new user
       const newUser: User = {
         id: `user_${Date.now()}`,
         email,
@@ -103,16 +101,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         location: null,
         interests: [],
         joinedEvents: [],
-        connections: [],
+        matchedUsers: [],
+        joinedGroups: [],
         settings: {
           notifications: true,
           privacy: "public",
         },
         createdAt: new Date(),
       };
-      
-      // Add to mock data (in a real app, this would be saved to a database)
-      // MOCK_USERS.push(newUser);
       
       setUser(newUser);
       navigate("/profile");
@@ -157,7 +153,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const joinEvent = (eventId: string) => {
     if (!user) return;
     
-    // Avoid duplicates
     if (user.joinedEvents.includes(eventId)) return;
     
     const updatedUser = { 
@@ -179,6 +174,80 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(updatedUser);
   };
 
+  const updateUserInterests = (interests: string[]) => {
+    if (!user) return;
+    
+    const interestObjects: Interest[] = interests.map(id => ({
+      id,
+      name: id,
+      category: "General"
+    }));
+    
+    const updatedUser = { 
+      ...user, 
+      interests: interestObjects
+    };
+    
+    setUser(updatedUser);
+    
+    toast({
+      title: "Interests updated",
+      description: "Your interests have been updated successfully.",
+    });
+  };
+
+  const updateUserLocation = (latitude: number, longitude: number) => {
+    if (!user) return;
+    
+    const updatedUser = { 
+      ...user, 
+      location: {
+        city: "New City",
+        country: "Country",
+        latitude,
+        longitude
+      }
+    };
+    
+    setUser(updatedUser);
+  };
+
+  const updateUserAgeRange = (ageRange: string) => {
+    if (!user) return;
+    
+    try {
+      const parsedRange = JSON.parse(ageRange);
+      const updatedUser = { 
+        ...user, 
+        ageRange: parsedRange
+      };
+      
+      setUser(updatedUser);
+    } catch (error) {
+      console.error("Failed to parse age range:", error);
+    }
+  };
+
+  const updateUserWatchlist = (watchlist: any) => {
+    if (!user) return;
+    
+    const updatedUser = { 
+      ...user, 
+      watchlist
+    };
+    
+    setUser(updatedUser);
+  };
+
+  const createGroup = (groupData: any) => {
+    toast({
+      title: "Group created",
+      description: `Your group "${groupData.name}" has been created.`,
+    });
+  };
+
+  const signOut = logout;
+
   return (
     <AuthContext.Provider
       value={{
@@ -189,7 +258,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logout,
         updateUserProfile,
         joinEvent,
-        leaveEvent
+        leaveEvent,
+        updateUserInterests,
+        updateUserLocation,
+        updateUserAgeRange,
+        updateUserWatchlist,
+        createGroup,
+        signOut
       }}
     >
       {children}

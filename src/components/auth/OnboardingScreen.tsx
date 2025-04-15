@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Check, ChevronsRight, MapPin, UserPlus } from "lucide-react";
 import InterestSelector from "@/components/profile/InterestSelector";
 import { motion } from "framer-motion";
+import { Interest } from "@/types";
 
 interface OnboardingStep {
   title: string;
@@ -50,12 +50,17 @@ const OnboardingScreen: React.FC = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Save profile and redirect
+      const interestObjects = interests.map(interest => ({
+        id: interest,
+        name: interest,
+        category: "General"
+      }));
+      
       const updatedProfile = {
         name,
         bio,
         location: { city: location, country: "Unknown" },
-        interests: interests.map((interest) => ({ id: interest, name: interest })),
+        interests: interestObjects
       };
       
       updateUserProfile(updatedProfile);
@@ -171,7 +176,10 @@ const OnboardingScreen: React.FC = () => {
             <CardDescription>
               Select at least 3 interests to help us connect you with like-minded people and relevant events.
             </CardDescription>
-            <InterestSelector />
+            <InterestSelector 
+              selectedInterests={interests}
+              onInterestsChange={setInterests}
+            />
           </div>
         );
       case 3:

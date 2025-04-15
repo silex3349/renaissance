@@ -7,10 +7,10 @@ import { Menu } from "lucide-react";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
-    signOut();
+    logout();
   };
 
   return (
