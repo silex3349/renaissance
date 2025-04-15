@@ -138,7 +138,8 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
         </div>
       </div>
 
-      <style jsx>{`
+      <style>
+        {`
         .bg-grid-pattern {
           background-image: 
             linear-gradient(to right, rgba(200, 220, 240, 0.3) 1px, transparent 1px),
@@ -149,7 +150,8 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
         .map-pattern {
           position: relative;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

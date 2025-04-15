@@ -15,6 +15,7 @@ interface EventListProps {
   description?: string;
   showMap?: boolean;
   onToggleMap?: () => void;
+  compact?: boolean; // Added the compact prop
 }
 
 const EventList = ({ 
@@ -22,7 +23,8 @@ const EventList = ({
   title = "Events", 
   description,
   showMap,
-  onToggleMap 
+  onToggleMap,
+  compact
 }: EventListProps) => {
   const navigate = useNavigate();
   const { user, joinEvent } = useAuth();
@@ -94,7 +96,7 @@ const EventList = ({
         )}
       </div>
       
-      <div className="grid grid-cols-1 gap-6">
+      <div className={`grid grid-cols-1 gap-6 ${compact ? 'max-h-[calc(100vh-250px)] overflow-auto pb-4' : ''}`}>
         {events.map((event) => (
           <EventCard 
             key={event.id} 
