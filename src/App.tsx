@@ -1,6 +1,6 @@
 
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -14,21 +14,27 @@ import Chats from "@/pages/Chats";
 import Groups from "@/pages/Groups";
 import NotFound from "@/pages/NotFound";
 import Discover from "@/pages/Discover";
-import "./App.css";
 
 // Create a react-query client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Route guard for protected routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="p-8 text-center">Loading...</div>;
   }
 
   if (!user) {
-    return <Auth />;
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;
@@ -42,7 +48,6 @@ function App() {
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Layout />}>
-                {/* Merged Home and Events into a single route */}
                 <Route index element={<Events />} />
                 <Route path="auth" element={<Auth />} />
                 <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

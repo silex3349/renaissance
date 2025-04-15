@@ -42,11 +42,11 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
         });
         setIsDetecting(false);
         
-        // Force navigation to events page - explicitly navigate to root/events
+        // Navigate to events page after detection
         if (onComplete) {
           onComplete();
         } else {
-          navigate("/");
+          navigate("/", { replace: true });
         }
       },
       (error) => {
@@ -71,7 +71,6 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-white rounded-xl overflow-hidden shadow-sm p-6 flex flex-col items-center">
-        {/* New Location Icon with Image */}
         <div className="mb-4 w-32 h-32">
           <img 
             src="/lovable-uploads/cee9da71-8977-4ae0-907b-f2ac7b2c5b1b.png" 
@@ -80,7 +79,6 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
           />
         </div>
         
-        {/* Header Text */}
         <h3 className="text-xl font-semibold text-center mb-2">
           Activate Location
         </h3>
@@ -89,7 +87,6 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
           To proceed with the registration, enable location access in your phone settings.
         </p>
         
-        {/* Allow Access Button */}
         <Button
           onClick={detectLocation}
           disabled={isDetecting}
@@ -106,7 +103,6 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
           )}
         </Button>
         
-        {/* Skip Link */}
         {onComplete && (
           <button
             onClick={onComplete}

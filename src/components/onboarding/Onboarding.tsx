@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import InterestSelector from "@/components/profile/InterestSelector";
 import LocationDetection from "@/components/location/LocationDetection";
 import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
@@ -20,25 +19,20 @@ const Onboarding = () => {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      // Onboarding complete - navigate to home/events page
-      navigate("/");
+      navigate("/", { replace: true });
     }
   };
 
   const handleAgeRangeChange = (ageRange: { min: number; max: number }) => {
-    // Store the age range in the user's profile
     updateUserAgeRange(JSON.stringify(ageRange));
   };
 
   const handleInterestsSelected = () => {
-    // Move to next step
     handleNext();
   };
 
   const handleLocationComplete = () => {
-    // Force navigation to the events page
-    console.log("Location complete, navigating to events page");
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (

@@ -15,7 +15,7 @@ interface EventListProps {
   description?: string;
   showMap?: boolean;
   onToggleMap?: () => void;
-  compact?: boolean; // Added the compact prop
+  compact?: boolean; // Added compact prop
 }
 
 const EventList = ({ 
@@ -24,7 +24,7 @@ const EventList = ({
   description,
   showMap,
   onToggleMap,
-  compact
+  compact = false // Default value
 }: EventListProps) => {
   const navigate = useNavigate();
   const { user, joinEvent } = useAuth();
@@ -42,11 +42,8 @@ const EventList = ({
     }
 
     setJoiningEvent(eventId);
-    
-    // Join the event
     joinEvent(eventId);
     
-    // Show success toast
     toast({
       title: "Event joined!",
       description: "You have successfully joined this event.",
@@ -82,7 +79,6 @@ const EventList = ({
           {description && <p className="text-muted-foreground">{description}</p>}
         </div>
         
-        {/* Add Map toggle button for Nearby Events */}
         {title === "Events Near You" && onToggleMap && (
           <Button 
             variant="outline" 
