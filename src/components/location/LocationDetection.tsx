@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { MapPin, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: () => void, autoDetect?: boolean }) => {
@@ -41,9 +41,13 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
           description: "We'll use this to find events near you.",
         });
         setIsDetecting(false);
-        // Navigate to events page after successful location detection
-        if (onComplete) onComplete();
-        else navigate("/");
+        
+        // Force navigation to events page - explicitly navigate to root/events
+        if (onComplete) {
+          onComplete();
+        } else {
+          navigate("/");
+        }
       },
       (error) => {
         console.error("Geolocation error:", error);
@@ -70,7 +74,7 @@ const LocationDetection = ({ onComplete, autoDetect = false }: { onComplete?: ()
         {/* New Location Icon with Image */}
         <div className="mb-4 w-32 h-32">
           <img 
-            src="public/lovable-uploads/cee9da71-8977-4ae0-907b-f2ac7b2c5b1b.png" 
+            src="/lovable-uploads/cee9da71-8977-4ae0-907b-f2ac7b2c5b1b.png" 
             alt="Location Icon" 
             className="w-full h-full object-contain"
           />

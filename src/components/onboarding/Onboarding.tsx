@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import InterestSelector from "@/components/profile/InterestSelector";
 import LocationDetection from "@/components/location/LocationDetection";
@@ -37,7 +36,8 @@ const Onboarding = () => {
   };
 
   const handleLocationComplete = () => {
-    // Navigate to the home/events page after location step
+    // Force navigation to the events page
+    console.log("Location complete, navigating to events page");
     navigate("/");
   };
 
