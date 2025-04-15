@@ -43,10 +43,18 @@ const Profile = () => {
         
         // Fetch events this user is attending
         if (profileData) {
-          const events = MOCK_EVENTS.filter(event => 
-            profileData?.joinedEvents.includes(event.id)
-          );
-          setJoinedEvents(events);
+          // Ensure all required properties exist in the events
+          const validEvents = MOCK_EVENTS
+            .filter(event => profileData?.joinedEvents.includes(event.id))
+            .map(event => {
+              // Make sure all required properties are present
+              return {
+                ...event,
+                name: event.name || event.title, // Ensure name always exists
+              } as Event;
+            });
+            
+          setJoinedEvents(validEvents);
         }
       } catch (error) {
         console.error("Error fetching profile:", error);

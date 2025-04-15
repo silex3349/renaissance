@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,10 +51,10 @@ const OnboardingScreen: React.FC = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      const interestObjects = interests.map(interest => ({
+      const interestObjects: Interest[] = interests.map(interest => ({
         id: interest,
         name: interest,
-        category: "General"
+        category: "General" // Include the required category field
       }));
       
       const updatedProfile = {

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -180,7 +181,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const interestObjects: Interest[] = interests.map(id => ({
       id,
       name: id,
-      category: "General"
+      category: "General" // Add the required category field
     }));
     
     const updatedUser = { 

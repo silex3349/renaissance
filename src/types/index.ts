@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -22,6 +21,10 @@ export interface User {
   };
   createdAt: Date;
   watchlist?: any;
+  settings?: {
+    notifications: boolean;
+    privacy: string;
+  };
 }
 
 export interface Event {
