@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -452,9 +451,9 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
   
   // Mock interest data for demonstration
   const sharedInterests = [
-    { id: "1", name: "Photography" },
-    { id: "2", name: "Travel" },
-    { id: "3", name: "Tech" }
+    { id: "1", name: "Photography", category: "Arts" },
+    { id: "2", name: "Travel", category: "Adventure" },
+    { id: "3", name: "Tech", category: "Professional" }
   ];
 
   return (
