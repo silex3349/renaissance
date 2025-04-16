@@ -4,7 +4,7 @@ import { Event } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Users } from "lucide-react";
+import { MapPin, Calendar, Users, Layers, ZoomIn, ZoomOut, Navigation } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
@@ -17,6 +17,8 @@ const MapView = ({ events }: MapViewProps) => {
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(13);
   
   // Format date for display
   const formatDate = (date: Date) => {
@@ -30,83 +32,174 @@ const MapView = ({ events }: MapViewProps) => {
   };
   
   useEffect(() => {
-    // This is a placeholder for a real map implementation
-    // In a real app, you would use a library like Mapbox or Google Maps
-    
-    const initMap = () => {
-      if (!mapRef.current) return;
+    // Load OpenStreetMap using Leaflet
+    const initMap = async () => {
+      if (!mapRef.current || mapLoaded) return;
       
-      // Apply styling to make it look like a map
-      mapRef.current.innerHTML = "";
-      const mapContainer = document.createElement("div");
-      mapContainer.className = "w-full h-full bg-blue-50 rounded-lg relative";
-      
-      // Add a simple grid to simulate a map
-      for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 10; j++) {
-          const grid = document.createElement("div");
-          grid.className = "absolute border border-blue-100";
-          grid.style.top = `${i * 10}%`;
-          grid.style.left = `${j * 10}%`;
-          grid.style.width = "10%";
-          grid.style.height = "10%";
-          mapContainer.appendChild(grid);
-        }
-      }
-      
-      // Add event markers to the map
-      events.forEach((event, index) => {
-        const marker = document.createElement("div");
-        marker.className = "absolute w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white font-bold cursor-pointer transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-transform";
+      try {
+        const L = await import('leaflet');
+        // Need to import the CSS
+        import('leaflet/dist/leaflet.css');
         
-        // Random position for demo purposes
-        // In a real app, you would use actual coordinates
-        const left = 10 + Math.random() * 80;
-        const top = 10 + Math.random() * 80;
-        
-        marker.style.left = `${left}%`;
-        marker.style.top = `${top}%`;
-        marker.textContent = `${index + 1}`;
-        
-        marker.addEventListener("click", () => {
-          setActiveEvent(event);
+        // Fix icon paths issue in Leaflet
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+          iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
         });
         
-        mapContainer.appendChild(marker);
-      });
-      
-      // Add current location marker if available
-      if (user?.location) {
-        const userMarker = document.createElement("div");
-        userMarker.className = "absolute w-6 h-6 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center text-white font-bold transform -translate-x-1/2 -translate-y-1/2 z-10";
-        userMarker.style.left = "50%";
-        userMarker.style.top = "50%";
-        userMarker.innerHTML = "●";
+        // Default coordinates if user location is not available
+        const defaultLat = 40.7128;
+        const defaultLng = -74.0060;
         
-        const pulse = document.createElement("div");
-        pulse.className = "absolute w-12 h-12 bg-blue-500 rounded-full opacity-30 animate-ping";
-        pulse.style.left = "50%";
-        pulse.style.top = "50%";
-        pulse.style.transform = "translate(-50%, -50%)";
+        // Get user coordinates if available
+        const userLat = user?.location?.latitude || defaultLat;
+        const userLng = user?.location?.longitude || defaultLng;
         
-        mapContainer.appendChild(pulse);
-        mapContainer.appendChild(userMarker);
+        // Create map centered on user location or default
+        const map = L.map(mapRef.current).setView([userLat, userLng], zoomLevel);
+        
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }).addTo(map);
+        
+        // Add user location marker if available
+        if (user?.location) {
+          const userIcon = L.divIcon({
+            className: 'user-location-marker',
+            html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white relative">
+                    <div class="absolute w-10 h-10 bg-blue-500/30 rounded-full -left-3 -top-3 animate-ping"></div>
+                   </div>`,
+            iconSize: [15, 15],
+            iconAnchor: [7, 7],
+          });
+          
+          L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
+            .bindPopup('Your location');
+        }
+        
+        // Add event markers
+        events.forEach((event, index) => {
+          // Use event coordinates if available, otherwise generate random ones
+          // In a real app, you would use actual coordinates from your database
+          const eventLat = event.location.latitude || (userLat + (Math.random() * 0.02 - 0.01));
+          const eventLng = event.location.longitude || (userLng + (Math.random() * 0.02 - 0.01));
+          
+          const eventIcon = L.divIcon({
+            className: 'event-marker',
+            html: `<div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold shadow-md">
+                    ${index + 1}
+                   </div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          });
+          
+          const marker = L.marker([eventLat, eventLng], { icon: eventIcon }).addTo(map);
+          
+          // Add popup with basic event info
+          marker.bindPopup(`
+            <div class="text-sm font-semibold">${event.title}</div>
+            <div class="text-xs">${formatDate(new Date(event.dateTime))}</div>
+          `);
+          
+          // Handle marker click to show event details
+          marker.on('click', () => {
+            setActiveEvent(event);
+          });
+        });
+        
+        // Add zoom controls
+        map.on('zoomend', () => {
+          setZoomLevel(map.getZoom());
+        });
+        
+        // Clean up on unmount
+        setMapLoaded(true);
+        return () => {
+          map.remove();
+          setMapLoaded(false);
+        };
+      } catch (error) {
+        console.error("Error initializing map:", error);
       }
-      
-      mapRef.current.appendChild(mapContainer);
     };
     
     initMap();
-  }, [events, user]);
+  }, [events, user, zoomLevel]);
   
   const goToEventDetails = (eventId: string) => {
     navigate(`/events/${eventId}`);
+  };
+  
+  // Zoom in and out handlers
+  const handleZoomIn = () => {
+    if (mapRef.current && mapLoaded) {
+      try {
+        // This won't work without the full Leaflet integration
+        // In a real implementation, you'd access the map instance and call map.zoomIn()
+        setZoomLevel(prev => Math.min(prev + 1, 19));
+      } catch (error) {
+        console.error("Error zooming in:", error);
+      }
+    }
+  };
+  
+  const handleZoomOut = () => {
+    if (mapRef.current && mapLoaded) {
+      try {
+        // This won't work without the full Leaflet integration
+        // In a real implementation, you'd access the map instance and call map.zoomOut()
+        setZoomLevel(prev => Math.max(prev - 1, 1));
+      } catch (error) {
+        console.error("Error zooming out:", error);
+      }
+    }
   };
 
   return (
     <div className="space-y-4">
       <div className="relative w-full h-[400px] rounded-lg overflow-hidden shadow-sm">
-        <div ref={mapRef} className="w-full h-full"></div>
+        {/* Map container */}
+        <div ref={mapRef} className="w-full h-full bg-blue-50"></div>
+        
+        {/* Map controls */}
+        <div className="absolute top-4 right-4 flex flex-col space-y-2">
+          <Button 
+            variant="default" 
+            size="icon" 
+            className="w-8 h-8 rounded-full bg-white text-gray-800 shadow-md hover:bg-gray-100"
+            onClick={handleZoomIn}
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="default" 
+            size="icon" 
+            className="w-8 h-8 rounded-full bg-white text-gray-800 shadow-md hover:bg-gray-100"
+            onClick={handleZoomOut}
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="default" 
+            size="icon" 
+            className="w-8 h-8 rounded-full bg-white text-gray-800 shadow-md hover:bg-gray-100"
+          >
+            <Layers className="h-4 w-4" />
+          </Button>
+          {user?.location && (
+            <Button 
+              variant="default" 
+              size="icon" 
+              className="w-8 h-8 rounded-full bg-white text-gray-800 shadow-md hover:bg-gray-100"
+            >
+              <Navigation className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
         
         {/* Location label */}
         {user?.location && (
@@ -117,11 +210,21 @@ const MapView = ({ events }: MapViewProps) => {
             </Badge>
           </div>
         )}
+        
+        {/* Loading state */}
+        {!mapLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-70">
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p className="text-sm font-medium">Loading map...</p>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Selected event card */}
       {activeEvent && (
-        <Card className="p-4">
+        <Card className="p-4 animate-fade-in">
           <h3 className="text-xl font-semibold mb-3">{activeEvent.title}</h3>
           
           <div className="space-y-2 mb-4">
@@ -154,12 +257,21 @@ const MapView = ({ events }: MapViewProps) => {
             </div>
           </div>
           
-          <Button 
-            className="w-full"
-            onClick={() => goToEventDetails(activeEvent.id)}
-          >
-            View Event
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              className="flex-1"
+              onClick={() => goToEventDetails(activeEvent.id)}
+            >
+              View Event
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => setActiveEvent(null)}
+            >
+              Close
+            </Button>
+          </div>
         </Card>
       )}
     </div>

@@ -36,6 +36,9 @@ export const InterestTag: React.FC<InterestTagProps> = ({
         className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mr-1.5 ${className}`}
       >
         {interest.name}
+        {interest.category && (
+          <span className="text-xs text-primary/60 ml-1">({interest.category})</span>
+        )}
       </span>
     );
   }
@@ -50,6 +53,9 @@ export const InterestTag: React.FC<InterestTagProps> = ({
       onClick={onClick}
     >
       {interest.name}
+      {interest.category && (
+        <span className="text-xs ml-1 opacity-70">({interest.category})</span>
+      )}
     </button>
   );
 };
