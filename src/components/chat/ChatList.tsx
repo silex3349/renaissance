@@ -2,22 +2,19 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Search, 
-  Plus, 
-  MoreVertical, 
-  CheckCheck, 
-  Video, 
-  Mic, 
-  Image,
+  Plus,
+  MoreVertical,
+  CheckCheck,
+  Video,
+  Mic,
+  ImageIcon as Image,
   UserPlus,
-  Users 
+  Users,
+  MessageSquare,
+  Filter
 } from "lucide-react";
 import { MOCK_USERS } from "@/services/mockData";
 import { motion } from "framer-motion";
@@ -26,15 +23,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { InterestTag } from "./InterestTag";
 
 interface ChatInfo {
   id: string;
@@ -73,7 +73,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user_1",
       lastMessage: {
         text: "Hey! Are you coming to the event tomorrow?",
-        time: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+        time: new Date(Date.now() - 1000 * 60 * 5),
         senderId: "user_1",
         status: "read",
         isUnread: true,
@@ -86,7 +86,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       avatar: "https://api.dicebear.com/7.x/shapes/svg?seed=group_1",
       lastMessage: {
         text: "Check out this awesome photo I took!",
-        time: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        time: new Date(Date.now() - 1000 * 60 * 30),
         senderId: "user_2",
         type: "image",
         status: "delivered",
@@ -99,7 +99,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user_3",
       lastMessage: {
         text: "Voice message (0:42)",
-        time: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+        time: new Date(Date.now() - 1000 * 60 * 60 * 2),
         senderId: "user_3",
         type: "voice",
         status: "delivered",
@@ -112,7 +112,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       avatar: "https://api.dicebear.com/7.x/shapes/svg?seed=group_2",
       lastMessage: {
         text: "Let's meet at the trailhead at 9am",
-        time: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
+        time: new Date(Date.now() - 1000 * 60 * 60 * 5),
         senderId: "user_4",
         status: "read",
       }
@@ -124,7 +124,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user_5",
       lastMessage: {
         text: "Missed video call",
-        time: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+        time: new Date(Date.now() - 1000 * 60 * 60 * 24),
         senderId: "user_5",
         type: "video",
         status: "read",
@@ -174,14 +174,12 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
   };
 
   const handleStartChat = (userId: string) => {
-    // In a real app, this would create a new chat
     toast({
       title: "Chat started",
       description: "New conversation has been created"
     });
     setNewChatOpen(false);
     
-    // Simulate a new chat by selecting the first existing one
     if (mockChats.length > 0) {
       onSelectChat(mockChats[0].id);
     }
@@ -205,7 +203,6 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
     setGroupName("");
     setSelectedUsers([]);
     
-    // Simulate by selecting an existing group chat
     const groupChat = mockChats.find(chat => chat.type === "group");
     if (groupChat) {
       onSelectChat(groupChat.id);
@@ -221,32 +218,39 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
   };
 
   return (
-    <div className="h-full flex flex-col border rounded-lg overflow-hidden bg-white shadow-lg">
-      {/* Header */}
+    <div className="h-full flex flex-col border rounded-lg overflow-hidden bg-white shadow-md">
       <div className="p-4 flex justify-between items-center border-b sticky top-0 bg-white z-10">
-        <h2 className="text-xl font-bold">Chats</h2>
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <MessageSquare className="h-5 w-5 text-primary" />
+          Chats
+        </h2>
         <div className="flex items-center gap-2">
           <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
             <Dialog open={newGroupOpen} onOpenChange={setNewGroupOpen}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 bg-primary/10 text-primary">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full h-9 w-9 bg-primary/10 text-primary hover:bg-primary/20"
+                  >
                     <Plus className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setNewChatOpen(true)}>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    <span>New Chat</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setNewGroupOpen(true)}>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem onSelect={() => setNewChatOpen(true)}>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      <span>New Chat</span>
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                  <DropdownMenuItem onSelect={() => setNewGroupOpen(true)}>
                     <Users className="h-4 w-4 mr-2" />
                     <span>New Group</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* New Chat Dialog */}
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>New Chat</DialogTitle>
@@ -278,7 +282,6 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
                 </div>
               </DialogContent>
 
-              {/* New Group Dialog */}
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Create Group Chat</DialogTitle>
@@ -330,45 +333,44 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
               </DialogContent>
             </Dialog>
           </Dialog>
-          
-          <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-            <MoreVertical className="h-5 w-5" />
+        </div>
+      </div>
+
+      <div className="p-3 border-b">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search conversations..." 
+              className="pl-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button variant="outline" size="icon" className="shrink-0">
+            <Filter className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="p-3 border-b">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search conversations..." 
-            className="pl-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+      <Tabs defaultValue="all" onValueChange={setActiveTab} className="flex-1 flex flex-col">
         <div className="border-b">
-          <TabsList className="grid grid-cols-3 bg-transparent p-0 h-10">
+          <TabsList className="w-full h-11 bg-transparent p-0">
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
             >
               All
             </TabsTrigger>
             <TabsTrigger 
               value="unread" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
             >
               Unread
             </TabsTrigger>
             <TabsTrigger 
               value="groups" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              className="flex-1 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
             >
               Groups
             </TabsTrigger>
@@ -388,32 +390,51 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.2 }}
-                  className={`hover:bg-muted/30 cursor-pointer ${selectedChatId === chat.id ? 'bg-muted/50' : ''}`}
+                  className={`group hover:bg-muted/30 cursor-pointer transition-colors ${
+                    selectedChatId === chat.id ? "bg-muted/50" : ""
+                  }`}
                   onClick={() => onSelectChat(chat.id)}
                 >
                   <div className="flex items-start p-3 gap-3">
-                    <Avatar className="h-12 w-12 rounded-full border">
+                    <Avatar className="h-12 w-12 rounded-full border shrink-0">
                       <AvatarImage src={chat.avatar} />
-                      <AvatarFallback>{chat.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>
+                        {chat.type === "group" ? (
+                          <Users className="h-6 w-6 text-muted-foreground" />
+                        ) : (
+                          chat.name.substring(0, 2).toUpperCase()
+                        )}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline">
-                        <h3 className="font-medium truncate">{chat.name}</h3>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">{formatTime(chat.lastMessage.time)}</span>
+                      <div className="flex justify-between items-start gap-2">
+                        <div>
+                          <h3 className="font-medium truncate">{chat.name}</h3>
+                          {chat.type === "group" && chat.interests && chat.interests[0] && (
+                            <InterestTag interest={chat.interests[0]} />
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {formatTime(chat.lastMessage.time)}
+                        </span>
                       </div>
-                      <div className="flex items-center mt-1 text-sm text-muted-foreground">
+                      <div className="flex items-center mt-1">
                         {getMessageIcon(chat.lastMessage.type)}
-                        <span className="truncate">{chat.lastMessage.text}</span>
+                        <span className="text-sm text-muted-foreground truncate">
+                          {chat.lastMessage.text}
+                        </span>
                       </div>
                     </div>
-                    {chat.lastMessage.isUnread && (
-                      <div className="w-2.5 h-2.5 bg-primary rounded-full flex-shrink-0"></div>
-                    )}
-                    {chat.lastMessage.senderId === "me" && (
-                      <CheckCheck className={`h-4 w-4 flex-shrink-0 ${
-                        chat.lastMessage.status === "read" ? "text-blue-500" : "text-muted-foreground"
-                      }`} />
-                    )}
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {chat.lastMessage.isUnread && (
+                        <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>
+                      )}
+                      {chat.lastMessage.senderId === "me" && (
+                        <CheckCheck className={`h-4 w-4 ${
+                          chat.lastMessage.status === "read" ? "text-primary" : "text-muted-foreground"
+                        }`} />
+                      )}
+                    </div>
                   </div>
                 </motion.li>
               ))}
