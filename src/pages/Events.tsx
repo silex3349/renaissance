@@ -15,6 +15,7 @@ import EventTabView from "@/components/events/EventTabView";
 import GroupTabView from "@/components/events/GroupTabView";
 import DiscoverView from "@/components/events/DiscoverView";
 import CreateButton from "@/components/events/CreateButton";
+import { Button } from "@/components/ui/button";
 
 const Events = () => {
   const { id } = useParams();

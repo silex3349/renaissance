@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, MapPin } from "lucide-react";
 import SwipeCard from "@/components/matching/SwipeCard";
 import { AnimatePresence, motion } from "framer-motion";
+import LocationDetection from "@/components/location/LocationDetection";
 
 interface DiscoverViewProps {
   events: Event[];
