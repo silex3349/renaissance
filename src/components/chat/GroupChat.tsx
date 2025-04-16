@@ -25,7 +25,12 @@ import {
   X,
   ChevronLeft,
   UserCircle,
-  Info
+  Info,
+  Forward,
+  Copy,
+  MoreHorizontal,
+  MapPin,
+  Bookmark
 } from "lucide-react";
 import { MOCK_USERS } from "@/services/mockData";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,7 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAvatarColor, formatMessageTime } from "@/utils/chatUtils";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { InterestTag } from "@/components/chat/InterestTag";
 
 interface MessageReaction {
@@ -80,7 +85,10 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -125,7 +133,7 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
     
     return () => clearInterval(interval);
   }, [user]);
-
+  
   useEffect(() => {
     const chatNames = {
       "chat1": "Sarah Johnson",
@@ -203,6 +211,29 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Check if user has scrolled up to show the scroll-to-bottom button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!messagesContainerRef.current) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isScrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+      
+      setShowScrollToBottom(isScrolledUp);
+    };
+    
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+    
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
     
@@ -261,6 +292,10 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
     }, 1000);
   };
 
+  const handleScrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const handleAttachment = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -280,6 +315,16 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
         description: "Your file is ready to send"
       });
     }, 1500);
+  };
+
+  const handleSwipeToReply = (message: ChatMessage) => {
+    setReplyingTo({
+      id: message.id,
+      text: message.text,
+      userId: message.userId
+    });
+    
+    document.getElementById("message-input")?.focus();
   };
 
   const handleEmoji = () => {
@@ -350,6 +395,22 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
     document.getElementById("message-input")?.focus();
   };
 
+  const handleForwardMessage = (message: ChatMessage) => {
+    toast({
+      title: "Forward Message",
+      description: "Select a contact to forward this message"
+    });
+  };
+
+  const handleCopyMessage = (message: ChatMessage) => {
+    navigator.clipboard.writeText(message.text);
+    
+    toast({
+      title: "Copied to Clipboard",
+      description: "Message text copied to clipboard"
+    });
+  };
+
   const handleDeleteMessage = (messageId: string) => {
     setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
     
@@ -418,11 +479,11 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
   const getStatusIndicator = () => {
     switch (userStatus) {
       case 'online':
-        return <div className="h-3 w-3 rounded-full bg-green-500"></div>;
+        return <div className="h-3 w-3 rounded-full bg-green-500 ring-2 ring-white"></div>;
       case 'away':
-        return <div className="h-3 w-3 rounded-full bg-yellow-500"></div>;
+        return <div className="h-3 w-3 rounded-full bg-yellow-500 ring-2 ring-white"></div>;
       case 'offline':
-        return <div className="h-3 w-3 rounded-full bg-gray-400"></div>;
+        return <div className="h-3 w-3 rounded-full bg-gray-400 ring-2 ring-white"></div>;
       default:
         return null;
     }
@@ -458,34 +519,38 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
 
   return (
     <div className="flex flex-col h-[600px] border rounded-lg overflow-hidden bg-white shadow-lg">
-      {/* Chat Header */}
-      <div className="p-3 border-b bg-white flex items-center justify-between sticky top-0 z-10">
-        <div className="header-user-info">
+      {/* Chat Header - Enhanced */}
+      <div className="p-3 border-b bg-white flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center space-x-3">
           <Button variant="ghost" size="icon" className="md:hidden mr-1 h-8 w-8">
             <ChevronLeft className="h-5 w-5" />
           </Button>
           
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
-            <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${groupId}`} />
-            <AvatarFallback style={{ backgroundColor: getAvatarColor(chatName) }}>
-              {chatName.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-12 w-12 border-2 border-primary/20">
+              <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${groupId}`} />
+              <AvatarFallback style={{ backgroundColor: getAvatarColor(chatName) }}>
+                {chatName.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute bottom-0 right-0">
+              {getStatusIndicator()}
+            </div>
+          </div>
           
           <div>
-            <h3 className="font-semibold text-base">{chatName}</h3>
-            <div className="user-status">
-              {getStatusIndicator()}
-              <span>{getLastSeenText()}</span>
+            <h3 className="font-bold text-base">{chatName}</h3>
+            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+              <span className="text-sm">{getLastSeenText()}</span>
             </div>
           </div>
         </div>
         
-        <div className="header-actions">
+        <div className="flex items-center space-x-1">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-9 w-9"
+            className="rounded-full h-9 w-9 hover:bg-primary/10"
             onClick={handleAudioCall}
           >
             <Phone className="h-5 w-5 text-primary" />
@@ -494,7 +559,7 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-9 w-9"
+            className="rounded-full h-9 w-9 hover:bg-primary/10"
             onClick={handleVideoCall}
           >
             <Video className="h-5 w-5 text-primary" />
@@ -503,20 +568,43 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-9 w-9"
+            className="rounded-full h-9 w-9 hover:bg-primary/10"
             onClick={handleSearch}
           >
             <Search className="h-5 w-5" />
           </Button>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={`rounded-full h-9 w-9 ${isInfoOpen ? 'bg-primary/10 text-primary' : ''}`}
-            onClick={handleToggleInfo}
-          >
-            <Info className="h-5 w-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 hover:bg-primary/10">
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={handleToggleInfo}>
+                <Info className="mr-2 h-4 w-4" />
+                <span>View info</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <UserCircle className="mr-2 h-4 w-4" />
+                <span>View profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Search className="mr-2 h-4 w-4" />
+                <span>Search in conversation</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <MapPin className="mr-2 h-4 w-4" />
+                <span>Share location</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Clear conversation</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -538,10 +626,13 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
         </div>
       )}
 
-      {/* Main Chat Area */}
+      {/* Main Chat Area - Enhanced */}
       <div className="flex flex-1 overflow-hidden">
         {/* Messages List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f5f7fb]">
+        <div 
+          ref={messagesContainerRef}
+          className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8f9fc]"
+        >
           {displayedMessages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
@@ -557,9 +648,13 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} group`}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setSelectedMessage(message);
+                  }}
                 >
-                  <div className={`flex max-w-[80%] ${isCurrentUser ? "flex-row-reverse" : ""} group`}>
+                  <div className={`flex max-w-[80%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
                     {!isCurrentUser && (
                       <Avatar className="h-8 w-8 mr-2 mt-1">
                         <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${sender.id}`} />
@@ -569,16 +664,16 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
                       </Avatar>
                     )}
                     
-                    <div>
+                    <div className="max-w-full">
                       {!isCurrentUser && (
-                        <p className="text-xs text-muted-foreground mb-1 font-medium">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">
                           {sender.email}
                         </p>
                       )}
                       
                       {message.replyTo && (
-                        <div className={`mb-1 p-2 border-l-2 rounded-sm text-xs ${
-                          isCurrentUser ? "border-primary/50 bg-primary/5" : "border-gray-300 bg-gray-100"
+                        <div className={`mb-1 p-2 rounded-md text-xs ${
+                          isCurrentUser ? "bg-primary/5 border-l-2 border-primary/30" : "bg-gray-100 border-l-2 border-gray-300"
                         }`}>
                           <p className="font-medium text-muted-foreground">
                             Reply to {getUserById(message.replyTo.userId).email}
@@ -587,84 +682,138 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
                         </div>
                       )}
                       
-                      <div className={`message-bubble ${
-                        isCurrentUser ? "message-bubble-sent" : "message-bubble-received"
-                      }`}>
-                        <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                      <div 
+                        className={`relative message-container group ${isCurrentUser ? "message-right" : "message-left"}`}
+                        onClick={() => {
+                          if (window.innerWidth <= 768) {
+                            setSelectedMessage(message);
+                          }
+                        }}
+                      >
+                        <div className={`message-bubble ${
+                          isCurrentUser ? "bg-primary/90 text-white" : "bg-white border border-gray-200"
+                        } rounded-2xl px-4 py-2 shadow-sm`}>
+                          <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                          
+                          {message.attachmentType === "image" && message.attachmentUrl && (
+                            <div className="message-media mt-2 rounded-lg overflow-hidden">
+                              <img 
+                                src={message.attachmentUrl} 
+                                alt="Attached image" 
+                                className="w-full rounded-md hover:opacity-95 transition-opacity cursor-pointer"
+                              />
+                            </div>
+                          )}
+                          
+                          <AnimatePresence>
+                            {selectedMessage?.id === message.id && (
+                              <motion.div 
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="message-actions absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-white rounded-full shadow-lg border flex items-center z-10"
+                              >
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReplyToMessage(message);
+                                    setSelectedMessage(null);
+                                  }}
+                                >
+                                  <Reply className="h-4 w-4" />
+                                </Button>
+                                
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleForwardMessage(message);
+                                    setSelectedMessage(null);
+                                  }}
+                                >
+                                  <Forward className="h-4 w-4" />
+                                </Button>
+                                
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopyMessage(message);
+                                    setSelectedMessage(null);
+                                  }}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                                
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddReaction(message.id, "like");
+                                    setSelectedMessage(null);
+                                  }}
+                                >
+                                  <ThumbsUp className="h-4 w-4" />
+                                </Button>
+                                
+                                {isCurrentUser && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 rounded-full text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteMessage(message.id);
+                                      setSelectedMessage(null);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
                         
-                        {message.attachmentType === "image" && message.attachmentUrl && (
-                          <div className="message-media">
-                            <img 
-                              src={message.attachmentUrl} 
-                              alt="Attached image" 
-                              className="rounded-md"
-                            />
+                        <div className={`flex items-center gap-1 mt-1 text-xs text-muted-foreground ${
+                          isCurrentUser ? "justify-end" : ""
+                        }`}>
+                          <span>{formatMessageTime(message.timestamp)}</span>
+                          {isCurrentUser && getStatusIcon(message.status)}
+                        </div>
+                        
+                        {message.reactions && message.reactions.length > 0 && (
+                          <div className={`flex mt-1 ${isCurrentUser ? "justify-end" : "justify-start"}`}>
+                            <div className="flex -space-x-1 bg-white rounded-full px-2 py-0.5 shadow-sm border">
+                              {[...new Set(message.reactions.map(r => r.type))].map(type => {
+                                const count = message.reactions?.filter(r => r.type === type).length || 0;
+                                return (
+                                  <div key={type} className="flex items-center">
+                                    {type === 'like' ? 
+                                      <div className="bg-blue-100 rounded-full p-0.5">
+                                        <ThumbsUp className="h-3 w-3 text-blue-500" />
+                                      </div> : 
+                                      <div className="bg-red-100 rounded-full p-0.5">
+                                        <Heart className="h-3 w-3 text-red-500" />
+                                      </div>
+                                    }
+                                    <span className="text-xs ml-1">{count}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         )}
-                        
-                        <div className="message-actions">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6 rounded-full bg-white shadow-sm"
-                            onClick={() => handleReplyToMessage(message)}
-                          >
-                            <Reply className="h-3 w-3" />
-                          </Button>
-                          
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6 rounded-full bg-white shadow-sm"
-                            onClick={() => handleAddReaction(message.id, "like")}
-                          >
-                            <ThumbsUp className="h-3 w-3" />
-                          </Button>
-                          
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6 rounded-full bg-white shadow-sm"
-                            onClick={() => handleAddReaction(message.id, "heart")}
-                          >
-                            <Heart className="h-3 w-3" />
-                          </Button>
-                          
-                          {isCurrentUser && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-6 w-6 rounded-full bg-white shadow-sm"
-                              onClick={() => handleDeleteMessage(message.id)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
                       </div>
-                      
-                      <div className={`flex items-center gap-1 mt-1 text-xs text-muted-foreground ${
-                        isCurrentUser ? "justify-end" : ""
-                      }`}>
-                        <span>{formatMessageTime(message.timestamp)}</span>
-                        {isCurrentUser && getStatusIcon(message.status)}
-                      </div>
-                      
-                      {message.reactions && message.reactions.length > 0 && (
-                        <div className={`flex mt-1 ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-                          <div className="flex gap-1">
-                            {[...new Set(message.reactions.map(r => r.type))].map(type => {
-                              const count = message.reactions?.filter(r => r.type === type).length || 0;
-                              return (
-                                <div key={type} className="reaction-bubble">
-                                  {type === 'like' ? <ThumbsUp className="h-3 w-3 mr-1" /> : <Heart className="h-3 w-3 mr-1" />}
-                                  <span>{count}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -681,14 +830,14 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1 font-medium">
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">
                     {isTyping.name}
                   </p>
-                  <div className="message-bubble message-bubble-received p-2">
-                    <div className="typing-indicator">
-                      <div className="typing-dot"></div>
-                      <div className="typing-dot"></div>
-                      <div className="typing-dot"></div>
+                  <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-200">
+                    <div className="flex space-x-1">
+                      <div className="typing-dot animate-pulse bg-gray-500 rounded-full h-2 w-2"></div>
+                      <div className="typing-dot animate-pulse bg-gray-500 rounded-full h-2 w-2" style={{ animationDelay: "0.2s" }}></div>
+                      <div className="typing-dot animate-pulse bg-gray-500 rounded-full h-2 w-2" style={{ animationDelay: "0.4s" }}></div>
                     </div>
                   </div>
                 </div>
@@ -710,16 +859,16 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
             </div>
             
             <div className="flex flex-col items-center mb-6">
-              <Avatar className="h-20 w-20 mb-3">
+              <Avatar className="h-20 w-20 mb-3 border-2 border-primary/20">
                 <AvatarImage src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${groupId}`} />
                 <AvatarFallback style={{ backgroundColor: getAvatarColor(chatName) }}>
                   {chatName.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <h2 className="text-lg font-bold">{chatName}</h2>
-              <div className="user-status">
+              <div className="flex items-center space-x-1 mt-1">
                 {getStatusIndicator()}
-                <span>{getLastSeenText()}</span>
+                <span className="text-sm text-muted-foreground">{getLastSeenText()}</span>
               </div>
             </div>
             
@@ -740,196 +889,8 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
               <h4 className="font-medium mb-2 text-sm">Media</h4>
               <div className="grid grid-cols-3 gap-2">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="aspect-square bg-muted rounded-md overflow-hidden">
+                  <div key={i} className="aspect-square bg-muted rounded-md overflow-hidden hover:opacity-90 transition-opacity cursor-pointer">
                     <img 
                       src={`https://picsum.photos/seed/${i+groupId}/100`} 
                       alt="Shared media" 
                       className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-              <Button variant="ghost" className="w-full mt-2 text-xs">
-                View All Media
-              </Button>
-            </div>
-            
-            <div className="mt-auto border-t pt-4">
-              <Button variant="outline" className="w-full mb-2">
-                <UserCircle className="h-4 w-4 mr-2" />
-                View Profile
-              </Button>
-              <Button variant="outline" className="w-full text-destructive">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Conversation
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Reply To Message */}
-      <AnimatePresence>
-        {replyingTo && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-3 py-2 border-t bg-muted/20"
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex items-start space-x-2">
-                <Reply className="h-4 w-4 text-muted-foreground mt-1" />
-                <div className="text-sm">
-                  <p className="font-medium text-xs">
-                    Replying to {getUserById(replyingTo.userId).email}
-                  </p>
-                  <p className="text-muted-foreground text-xs truncate max-w-xs">
-                    {replyingTo.text}
-                  </p>
-                </div>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-5 w-5" 
-                onClick={() => setReplyingTo(null)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Voice Recording Indicator */}
-      <AnimatePresence>
-        {isRecording && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="px-3 py-2 border-t"
-          >
-            <div className="voice-record-indicator">
-              <Mic className="h-4 w-4 text-destructive" />
-              <span>Recording {formatRecordingTime(recordingTime)}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 ml-auto" 
-                onClick={handleVoiceMessage}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Message Input */}
-      <div className="chat-input-container">
-        <div className="flex-none flex gap-1">
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-9 w-9 flex-shrink-0"
-            onClick={handleEmoji}
-          >
-            <SmilePlus className="h-5 w-5" />
-          </Button>
-          
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-9 w-9 flex-shrink-0"
-            onClick={handleAttachment}
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <Textarea
-          id="message-input"
-          value={inputValue}
-          onChange={handleInputChange}
-          placeholder="Type a message..."
-          className="resize-none min-h-[44px] max-h-[120px] py-2 rounded-2xl bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-          disabled={!user || isRecording}
-        />
-        
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          className="hidden" 
-          onChange={handleFileSelected} 
-          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
-        />
-        
-        <div className="flex-none">
-          {inputValue.trim() || uploading ? (
-            <Button 
-              type="button" 
-              size="icon"
-              className="rounded-full h-9 w-9 flex-shrink-0 bg-primary"
-              onClick={handleSendMessage}
-              disabled={!user}
-            >
-              <SendHorizontal className="h-5 w-5" />
-            </Button>
-          ) : (
-            <Button 
-              type="button" 
-              variant={isRecording ? "destructive" : "ghost"} 
-              size="icon" 
-              className="rounded-full h-9 w-9 flex-shrink-0"
-              onClick={handleVoiceMessage}
-            >
-              <Mic className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
-      </div>
-      
-      {/* Emoji Picker */}
-      <AnimatePresence>
-        {showEmojiPicker && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="p-2 border-t bg-white shadow-lg"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-sm font-medium">Emoji</h4>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6" 
-                onClick={() => setShowEmojiPicker(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="emoji-grid">
-              {mockEmojis.concat(["🤔", "😁", "🥰", "😇", "😎", "🤩", "😴", "😍"]).map(emoji => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => addEmoji(emoji)}
-                  className="emoji-item"
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-export default GroupChat;
