@@ -21,6 +21,7 @@ const Profile = () => {
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [joinedEvents, setJoinedEvents] = useState<Event[]>([]);
+  const [pastEvents, setpastEvents] = useState<Event[]>([]);
   
   const isOwnProfile = !id || (authUser && id === authUser.id);
   
@@ -49,8 +50,11 @@ const Profile = () => {
         
         // Fetch events this user is attending
         if (profileData) {
+          // Get current date for comparison
+          const now = new Date();
+          
           // Ensure all required properties exist in the events
-          const validEvents = MOCK_EVENTS
+          const events = MOCK_EVENTS
             .filter(event => profileData?.joinedEvents.includes(event.id))
             .map(event => {
               // Make sure all required properties are present
@@ -59,8 +63,13 @@ const Profile = () => {
                 name: event.name || event.title, // Ensure name always exists
               } as Event;
             });
-            
-          setJoinedEvents(validEvents);
+          
+          // Split events into upcoming and past
+          const upcoming = events.filter(event => new Date(event.dateTime) >= now);
+          const past = events.filter(event => new Date(event.dateTime) < now);
+          
+          setJoinedEvents(upcoming);
+          setpastEvents(past);
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -124,38 +133,9 @@ const Profile = () => {
   return (
     <div className="container py-8">
       <Card className="shadow-md border">
-        <CardHeader className="relative pb-0">
-          {isOwnProfile && (
-            <div className="absolute right-6 top-6 flex gap-2">
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => navigate("/profile/edit")}
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => navigate("/profile/settings")}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={handleLogout}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-          
+        <CardHeader className="relative pt-8 sm:pt-6">
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Avatar className="w-24 h-24 border-2 border-primary">
+            <Avatar className="w-24 h-24 border-2 border-primary mb-2 sm:mb-0">
               {supabaseUser ? (
                 <AvatarImage 
                   src={`https://api.dicebear.com/7.x/big-ears-neutral/svg?seed=${userEmail}`} 
@@ -191,14 +171,42 @@ const Profile = () => {
               </CardDescription>
             </div>
           </div>
+          
+          {isOwnProfile && (
+            <div className="absolute right-6 top-6 flex gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => navigate("/profile/edit")}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => navigate("/profile/settings")}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleLogout}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </CardHeader>
         
         <CardContent className="pt-6">
           <Tabs defaultValue="about" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="about">About</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
-              <TabsTrigger value="interests">Interests</TabsTrigger>
             </TabsList>
             
             <TabsContent value="about" className="pt-4">
@@ -212,74 +220,93 @@ const Profile = () => {
                   <h3 className="font-medium text-sm mb-1">Email</h3>
                   <p className="text-muted-foreground">{userEmail}</p>
                 </div>
+                
+                <div>
+                  <h3 className="font-medium text-sm mb-1">Interests</h3>
+                  {profile?.interests && profile.interests.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {profile.interests.map(interest => (
+                        <Badge key={interest.id} variant="secondary" className="rounded-full">
+                          {interest.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No interests added yet.</p>
+                  )}
+                </div>
               </div>
             </TabsContent>
             
             <TabsContent value="events" className="pt-4">
-              <div className="space-y-4">
-                <h3 className="font-medium text-sm">Upcoming Events</h3>
-                
-                {joinedEvents.length > 0 ? (
-                  <div className="grid gap-4">
-                    {joinedEvents.map(event => (
-                      <Card key={event.id} className="overflow-hidden border-0 shadow-sm">
-                        <div className="flex flex-col sm:flex-row">
-                          <div 
-                            className="w-full sm:w-24 h-24 bg-cover bg-center"
-                            style={{ backgroundImage: `url(https://picsum.photos/seed/${event.id}/200/200)` }}
-                          ></div>
-                          <div className="p-4">
-                            <h4 className="font-medium">{event.title}</h4>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{format(new Date(event.dateTime), "EEE, MMM d, yyyy • h:mm a")}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                              <MapPin className="h-3 w-3" />
-                              <span>{event.location.city}</span>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-medium text-sm mb-2">Upcoming Events</h3>
+                  
+                  {joinedEvents.length > 0 ? (
+                    <div className="grid gap-4">
+                      {joinedEvents.map(event => (
+                        <Card key={event.id} className="overflow-hidden border-0 shadow-sm">
+                          <div className="flex flex-col sm:flex-row">
+                            <div 
+                              className="w-full sm:w-24 h-24 bg-cover bg-center"
+                              style={{ backgroundImage: `url(https://picsum.photos/seed/${event.id}/200/200)` }}
+                            ></div>
+                            <div className="p-4">
+                              <h4 className="font-medium">{event.title}</h4>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>{format(new Date(event.dateTime), "EEE, MMM d, yyyy • h:mm a")}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <MapPin className="h-3 w-3" />
+                                <span>{event.location.city}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Not attending any upcoming events.</p>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="interests" className="pt-4">
-              <div className="space-y-4">
-                <h3 className="font-medium text-sm">Interests</h3>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">Not attending any upcoming events.</p>
+                  )}
+                </div>
                 
-                {profile?.interests && profile.interests.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {profile.interests.map(interest => (
-                      <Badge key={interest.id} variant="secondary" className="rounded-full">
-                        {interest.name}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No interests added yet.</p>
-                )}
+                <div>
+                  <h3 className="font-medium text-sm mb-2">Past Events</h3>
+                  
+                  {pastEvents.length > 0 ? (
+                    <div className="grid gap-4">
+                      {pastEvents.map(event => (
+                        <Card key={event.id} className="overflow-hidden border-0 shadow-sm opacity-75">
+                          <div className="flex flex-col sm:flex-row">
+                            <div 
+                              className="w-full sm:w-24 h-24 bg-cover bg-center"
+                              style={{ backgroundImage: `url(https://picsum.photos/seed/${event.id}/200/200)` }}
+                            ></div>
+                            <div className="p-4">
+                              <h4 className="font-medium">{event.title}</h4>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>{format(new Date(event.dateTime), "EEE, MMM d, yyyy • h:mm a")}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <MapPin className="h-3 w-3" />
+                                <span>{event.location.city}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No past events.</p>
+                  )}
+                </div>
               </div>
             </TabsContent>
           </Tabs>
         </CardContent>
-        
-        {isOwnProfile && (
-          <CardFooter className="flex justify-center sm:justify-start pt-0">
-            <Button 
-              variant="default" 
-              className="mt-4"
-              onClick={() => navigate("/profile/edit")}
-            >
-              Edit Profile
-            </Button>
-          </CardFooter>
-        )}
       </Card>
     </div>
   );

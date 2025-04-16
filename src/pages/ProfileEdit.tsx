@@ -8,14 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import InterestSelector from "@/components/profile/InterestSelector";
+import { INTERESTS } from "@/services/mockData";
+import { Badge } from "@/components/ui/badge";
 import LocationDetection from "@/components/location/LocationDetection";
 import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
 import { ArrowLeft, Upload } from "lucide-react";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
-  const { user, updateUserProfile, updateUserAgeRange } = useAuth();
+  const { user, updateUserProfile, updateUserAgeRange, updateUserInterests } = useAuth();
   const { toast } = useToast();
   
   const [name, setName] = useState(user?.name || "");
@@ -23,6 +24,7 @@ const ProfileEdit = () => {
   const [email, setEmail] = useState(user?.email || "");
   const [avatar, setAvatar] = useState(user?.avatar || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
   // Load settings from localStorage
   useEffect(() => {
@@ -35,6 +37,11 @@ const ProfileEdit = () => {
       if (storedName) setName(storedName);
       if (storedBio) setBio(storedBio);
       if (storedAvatar) setAvatar(storedAvatar);
+
+      // Load user interests
+      if (user.interests && user.interests.length > 0) {
+        setSelectedInterests(user.interests.map(interest => interest.id));
+      }
     }
   }, [user]);
 
@@ -65,6 +72,9 @@ const ProfileEdit = () => {
       localStorage.setItem("userBio", bio);
       localStorage.setItem("userAvatar", avatar);
       
+      // Save interests
+      updateUserInterests(selectedInterests);
+      
       setIsSubmitting(false);
       toast({
         title: "Profile updated",
@@ -85,6 +95,14 @@ const ProfileEdit = () => {
   const getUserInitials = () => {
     if (!name) return "U";
     return name.split(" ").map(n => n[0]).join("").toUpperCase();
+  };
+
+  const toggleInterest = (interestId: string) => {
+    setSelectedInterests(prev => 
+      prev.includes(interestId) 
+        ? prev.filter(id => id !== interestId) 
+        : [...prev, interestId]
+    );
   };
 
   if (!user) {
@@ -160,11 +178,30 @@ const ProfileEdit = () => {
             </CardContent>
           </Card>
           
-          {/* Preferences */}
+          {/* Interests */}
           <Card>
             <CardContent className="pt-6">
               <h3 className="font-medium mb-4">Interests</h3>
-              <InterestSelector />
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Select interests that match your preferences. We'll use these to suggest events and connect you with like-minded people.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {INTERESTS.map(interest => (
+                    <Badge 
+                      key={interest.id}
+                      variant={selectedInterests.includes(interest.id) ? "default" : "outline"}
+                      className="cursor-pointer px-3 py-1"
+                      onClick={() => toggleInterest(interest.id)}
+                    >
+                      {interest.name}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Selected {selectedInterests.length} of {INTERESTS.length} interests
+                </div>
+              </div>
             </CardContent>
           </Card>
           
