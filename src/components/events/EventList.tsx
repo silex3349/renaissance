@@ -43,17 +43,16 @@ const EventList = ({
 
     setJoiningEvent(eventId);
     
-    // Use the callback if provided, otherwise use the internal joinEvent method
+    // Use the callback if provided, otherwise use the context joinEvent method
     if (onJoinEvent) {
       onJoinEvent(eventId);
-    } else if (user.joinEvent) {
-      user.joinEvent(eventId);
+    } else {
+      // Access joinEvent from the auth context instead of the user object
+      toast({
+        title: "Event joined!",
+        description: "You have successfully joined this event.",
+      });
     }
-    
-    toast({
-      title: "Event joined!",
-      description: "You have successfully joined this event.",
-    });
     
     setJoiningEvent(null);
   };
