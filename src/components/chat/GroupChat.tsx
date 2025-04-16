@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -894,3 +895,194 @@ const GroupChat = ({ groupId }: GroupChatProps) => {
                       src={`https://picsum.photos/seed/${i+groupId}/100`} 
                       alt="Shared media" 
                       className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-2 text-sm">Actions</h4>
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Bookmark className="h-4 w-4 mr-2" />
+                  Bookmark Important Messages
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Share Location
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-destructive" size="sm">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear Conversation
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Input Area - Enhanced */}
+      <div className="border-t bg-white">
+        {replyingTo && (
+          <div className="px-4 py-2 bg-muted/20 border-b flex items-center justify-between">
+            <div className="flex items-center">
+              <Reply className="h-4 w-4 text-muted-foreground mr-2" />
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  Replying to <span className="font-medium">{getUserById(replyingTo.userId).email}</span>
+                </p>
+                <p className="text-sm truncate">{replyingTo.text}</p>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="h-6 w-6 rounded-full hover:bg-muted"
+              onClick={() => setReplyingTo(null)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+        
+        {showEmojiPicker && (
+          <div className="p-3 border-b bg-white">
+            <div className="emoji-grid">
+              {mockEmojis.map((emoji) => (
+                <div
+                  key={emoji}
+                  className="emoji-item"
+                  onClick={() => addEmoji(emoji)}
+                >
+                  {emoji}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {isRecording ? (
+          <div className="flex items-center justify-between p-4">
+            <div className="voice-record-indicator flex-1">
+              <div className="h-2 w-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+              <span>Recording {formatRecordingTime(recordingTime)}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground"
+                onClick={() => {
+                  setIsRecording(false);
+                  setRecordingTime(0);
+                  if (recordingTimerRef.current) {
+                    clearInterval(recordingTimerRef.current);
+                  }
+                }}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              
+              <Button
+                variant="default"
+                size="icon"
+                onClick={handleVoiceMessage}
+              >
+                <SendHorizontal className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-end p-2 gap-1">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelected}
+              className="hidden"
+              accept="image/*"
+            />
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-10 w-10 hover:bg-muted"
+              onClick={handleAttachment}
+            >
+              <Paperclip className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-10 w-10 hover:bg-muted"
+              onClick={handleEmoji}
+            >
+              <SmilePlus className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            
+            <div className="flex-1 mx-1">
+              <Textarea
+                id="message-input"
+                value={inputValue}
+                onChange={handleInputChange}
+                placeholder="Type a message..."
+                className="min-h-[40px] max-h-[120px] resize-none border rounded-xl px-3 py-2 focus-visible:ring-1 focus-visible:ring-primary/50"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+              />
+            </div>
+            
+            {inputValue.trim() ? (
+              <Button
+                variant="default"
+                size="icon"
+                className="rounded-full h-10 w-10"
+                onClick={handleSendMessage}
+              >
+                <SendHorizontal className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-10 w-10 hover:bg-muted"
+                onClick={handleVoiceMessage}
+              >
+                <Mic className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Scroll to Bottom Button */}
+      <AnimatePresence>
+        {showScrollToBottom && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-20 right-4"
+          >
+            <Button
+              variant="secondary"
+              size="icon"
+              className="rounded-full h-10 w-10 shadow-md"
+              onClick={handleScrollToBottom}
+            >
+              <ArrowLeft className="h-5 w-5 transform rotate-90" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default GroupChat;
