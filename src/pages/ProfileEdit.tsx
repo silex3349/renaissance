@@ -1,11 +1,10 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { INTERESTS } from "@/services/mockData";
@@ -13,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import LocationDetection from "@/components/location/LocationDetection";
 import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
 import InterestSelector from "@/components/profile/InterestSelector";
-import { ArrowLeft, Upload, Twitter, Instagram, Linkedin, Globe, Trash2, Plus, Camera, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -23,10 +22,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import ProfileEditHeader from "@/components/profile/ProfileEditHeader";
+import AvatarUpload from "@/components/profile/AvatarUpload";
+import SocialProfilesSection from "@/components/profile/SocialProfilesSection";
 
 // Form schema for validation
 const profileFormSchema = z.object({
@@ -44,20 +46,6 @@ interface SocialProfile {
   url: string;
 }
 
-const platformIcons = {
-  twitter: <Twitter className="h-4 w-4" />,
-  instagram: <Instagram className="h-4 w-4" />,
-  linkedin: <Linkedin className="h-4 w-4" />,
-  website: <Globe className="h-4 w-4" />,
-};
-
-const platformLabels = {
-  twitter: "Twitter Profile URL",
-  instagram: "Instagram Profile URL",
-  linkedin: "LinkedIn Profile URL",
-  website: "Website URL",
-};
-
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { user, updateUserProfile, updateUserAgeRange, updateUserInterests } = useAuth();
@@ -71,8 +59,6 @@ const ProfileEdit = () => {
     { id: "2", platform: "instagram", url: "" },
   ]);
   const [isInterestsDialogOpen, setIsInterestsDialogOpen] = useState(false);
-  const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize the form with user data
   const form = useForm<ProfileFormValues>({
@@ -169,59 +155,8 @@ const ProfileEdit = () => {
     setSelectedInterests(interests);
   };
 
-  const addSocialProfile = () => {
-    setSocialProfiles([
-      ...socialProfiles, 
-      { 
-        id: Date.now().toString(), 
-        platform: "website", 
-        url: "" 
-      }
-    ]);
-  };
-
-  const updateSocialProfile = (id: string, field: keyof SocialProfile, value: any) => {
-    setSocialProfiles(profiles => 
-      profiles.map(profile => 
-        profile.id === id ? { ...profile, [field]: value } : profile
-      )
-    );
-  };
-
-  const removeSocialProfile = (id: string) => {
-    setSocialProfiles(profiles => profiles.filter(profile => profile.id !== id));
-  };
-
-  const handleAvatarClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // In a real app, you would upload this file to your server/storage
-      // For now, we'll just create a local URL
-      const imageUrl = URL.createObjectURL(file);
-      setAvatar(imageUrl);
-      
-      // Reset the input so the same file can be selected again if needed
-      e.target.value = '';
-      
-      toast({
-        title: "Photo uploaded",
-        description: "Your profile photo has been updated."
-      });
-    }
-  };
-
-  const removeAvatar = () => {
-    setAvatar("");
-    toast({
-      title: "Photo removed",
-      description: "Your profile photo has been removed."
-    });
+  const handleSocialProfilesChange = (profiles: SocialProfile[]) => {
+    setSocialProfiles(profiles);
   };
 
   if (!user) {
@@ -230,76 +165,19 @@ const ProfileEdit = () => {
 
   return (
     <div className="bg-background min-h-screen pb-20">
-      <div className="flex items-center pt-6 px-4 mb-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="mr-2" 
-          onClick={() => navigate("/profile")}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-2xl font-bold">Profile Settings</h1>
-      </div>
+      <ProfileEditHeader />
       
       <div className="px-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Avatar Section - Improved */}
-            <div className="flex flex-col items-center">
-              <div className="relative group">
-                <div 
-                  className="relative cursor-pointer"
-                  onMouseEnter={() => setIsHoveringAvatar(true)}
-                  onMouseLeave={() => setIsHoveringAvatar(false)}
-                  onClick={handleAvatarClick}
-                >
-                  <Avatar className="h-28 w-28 mb-2 border-2 border-primary/20 group-hover:border-primary/50 transition-all">
-                    {avatar ? (
-                      <AvatarImage 
-                        src={avatar} 
-                        alt={form.getValues("name") || "User"} 
-                      />
-                    ) : (
-                      <AvatarFallback className="bg-muted flex items-center justify-center">
-                        <Camera className="h-10 w-10 text-muted-foreground opacity-50" />
-                      </AvatarFallback>
-                    )}
-                    {!avatar && <AvatarFallback>{getUserInitials()}</AvatarFallback>}
-                  </Avatar>
-                  
-                  {isHoveringAvatar && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
-                      <Camera className="h-10 w-10 text-white" />
-                    </div>
-                  )}
-                </div>
-                
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </div>
-              
-              <div className="flex gap-2 mt-2">
-                <Button type="button" variant="outline" size="sm" onClick={handleAvatarClick}>
-                  <Camera className="h-4 w-4 mr-2" />
-                  {avatar ? "Change Photo" : "Upload Photo"}
-                </Button>
-                
-                {avatar && (
-                  <Button type="button" variant="outline" size="sm" onClick={removeAvatar} className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                    <X className="h-4 w-4 mr-2" />
-                    Remove
-                  </Button>
-                )}
-              </div>
-            </div>
+            {/* Avatar Section */}
+            <AvatarUpload 
+              initialAvatar={avatar} 
+              onAvatarChange={setAvatar} 
+              userInitials={getUserInitials()} 
+            />
             
-            {/* Personal Information - Improved */}
+            {/* Personal Information */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Personal Information</CardTitle>
@@ -372,7 +250,7 @@ const ProfileEdit = () => {
               </CardContent>
             </Card>
             
-            {/* Interests - Improved */}
+            {/* Interests */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Your Interests</CardTitle>
@@ -424,15 +302,17 @@ const ProfileEdit = () => {
                         Manage Interests
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
+                    <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
                       <DialogHeader>
                         <DialogTitle>Select Your Interests</DialogTitle>
                       </DialogHeader>
-                      <InterestSelector
-                        selectedInterests={selectedInterests}
-                        onInterestsChange={handleInterestsChange}
-                        onComplete={() => setIsInterestsDialogOpen(false)}
-                      />
+                      <div className="flex-1 overflow-y-auto py-2">
+                        <InterestSelector
+                          selectedInterests={selectedInterests}
+                          onInterestsChange={handleInterestsChange}
+                          onComplete={() => setIsInterestsDialogOpen(false)}
+                        />
+                      </div>
                     </DialogContent>
                   </Dialog>
                   
@@ -443,73 +323,13 @@ const ProfileEdit = () => {
               </CardContent>
             </Card>
             
-            {/* Social Profiles - Improved */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-medium text-primary">Social Profiles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Connect your social media accounts to share them on your profile.
-                  </p>
-                  
-                  {socialProfiles.map((profile) => (
-                    <div key={profile.id} className="space-y-3 p-3 border rounded-lg hover:border-primary/30 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="bg-muted rounded-full p-1.5">
-                            {platformIcons[profile.platform]}
-                          </div>
-                          <select
-                            value={profile.platform}
-                            onChange={(e) => updateSocialProfile(
-                              profile.id, 
-                              "platform", 
-                              e.target.value as SocialProfile["platform"]
-                            )}
-                            className="text-sm bg-transparent border-none focus:outline-none focus:ring-0 p-0"
-                          >
-                            <option value="twitter">Twitter</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="website">Website</option>
-                          </select>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeSocialProfile(profile.id)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <Input
-                        value={profile.url}
-                        onChange={(e) => updateSocialProfile(profile.id, "url", e.target.value)}
-                        placeholder={platformLabels[profile.platform]}
-                        className="focus-visible:ring-primary/30 focus-visible:border-primary"
-                      />
-                    </div>
-                  ))}
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addSocialProfile}
-                    className="mt-2 w-full border-dashed"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Social Profile
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Social Profiles */}
+            <SocialProfilesSection 
+              initialProfiles={socialProfiles} 
+              onChange={handleSocialProfilesChange} 
+            />
             
-            {/* Age Range - Improved */}
+            {/* Age Range */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Age Range</CardTitle>
@@ -527,7 +347,7 @@ const ProfileEdit = () => {
               </CardContent>
             </Card>
             
-            {/* Location - Improved */}
+            {/* Location */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Location</CardTitle>
@@ -542,7 +362,7 @@ const ProfileEdit = () => {
               </CardContent>
             </Card>
             
-            {/* Save & Cancel Buttons - Improved */}
+            {/* Save & Cancel Buttons */}
             <div className="flex gap-4">
               <Button 
                 type="button" 

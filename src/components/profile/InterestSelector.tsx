@@ -87,23 +87,25 @@ const InterestSelector = ({
       {selectedInterests.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">Selected Interests</h4>
-          <div className="flex flex-wrap gap-2">
-            {selectedInterestObjects.map(interest => (
-              <Badge 
-                key={interest.id} 
-                variant="secondary" 
-                className="px-3 py-1.5 rounded-full flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20"
-              >
-                {interest.name}
-                <button 
-                  onClick={() => handleInterestToggle(interest.id)}
-                  className="ml-1 rounded-full hover:bg-primary/20 p-0.5"
+          <ScrollArea className="max-h-28">
+            <div className="flex flex-wrap gap-2 pb-2">
+              {selectedInterestObjects.map(interest => (
+                <Badge 
+                  key={interest.id} 
+                  variant="secondary" 
+                  className="px-3 py-1.5 rounded-full flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20"
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
+                  {interest.name}
+                  <button 
+                    onClick={() => handleInterestToggle(interest.id)}
+                    className="ml-1 rounded-full hover:bg-primary/20 p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       )}
 
@@ -117,27 +119,29 @@ const InterestSelector = ({
         />
       </div>
 
-      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        <Button
-          variant={activeCategory === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setActiveCategory("all")}
-          className="rounded-full whitespace-nowrap"
-        >
-          All
-        </Button>
-        {INTEREST_CATEGORIES.map((category) => (
+      <ScrollArea className="max-h-12">
+        <div className="flex flex-nowrap gap-2 pb-2">
           <Button
-            key={category}
-            variant={activeCategory === category ? "default" : "outline"}
+            variant={activeCategory === "all" ? "default" : "outline"}
             size="sm"
-            onClick={() => setActiveCategory(category)}
+            onClick={() => setActiveCategory("all")}
             className="rounded-full whitespace-nowrap"
           >
-            {category}
+            All
           </Button>
-        ))}
-      </div>
+          {INTEREST_CATEGORIES.map((category) => (
+            <Button
+              key={category}
+              variant={activeCategory === category ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveCategory(category)}
+              className="rounded-full whitespace-nowrap"
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
+      </ScrollArea>
 
       <div className="border rounded-lg p-4 bg-card">
         <ScrollArea className="h-[280px] pr-4">
@@ -147,7 +151,7 @@ const InterestSelector = ({
                 key={interest.id}
                 onClick={() => handleInterestToggle(interest.id)}
                 className={cn(
-                  "interest-tag transition-all",
+                  "interest-tag transition-all p-2 rounded-lg border text-sm",
                   selectedInterests.includes(interest.id)
                     ? "bg-primary/20 text-primary border-primary/50 hover:bg-primary/30"
                     : "bg-muted text-muted-foreground border-transparent hover:bg-muted/70"
