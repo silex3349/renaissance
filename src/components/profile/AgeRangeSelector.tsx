@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface AgeRangeSelectorProps {
   initialAgeRange?: { min: number; max: number };
@@ -26,41 +27,81 @@ const AgeRangeSelector = ({ initialAgeRange, onChange, onComplete }: AgeRangeSel
     onChange({ min, max: newMax });
   };
 
+  const handleInputChange = (type: 'min' | 'max', value: string) => {
+    const numValue = parseInt(value);
+    
+    if (isNaN(numValue)) return;
+    
+    if (type === 'min') {
+      if (numValue >= 18 && numValue < max) {
+        setMin(numValue);
+        onChange({ min: numValue, max });
+      }
+    } else if (type === 'max') {
+      if (numValue <= 80 && numValue > min) {
+        setMax(numValue);
+        onChange({ min, max: numValue });
+      }
+    }
+  };
+
   return (
-    <div className="space-y-6 p-6">
-      <div className="text-center mb-4">
-        <h3 className="text-lg font-medium mb-1">Select Age Range</h3>
-        <p className="text-sm text-muted-foreground">
-          Choose the age range you're interested in connecting with
-        </p>
-      </div>
-      
-      <div className="space-y-4">
-        <div className="flex justify-between">
-          <Label>Minimum Age: {min}</Label>
-          <Label>Maximum Age: {max}</Label>
+    <div className="space-y-6">
+      <div className="flex justify-between items-end">
+        <div className="space-y-1 w-20">
+          <Label htmlFor="minAge">Min Age</Label>
+          <Input 
+            id="minAge"
+            type="number" 
+            min={18}
+            max={max - 1}
+            value={min}
+            onChange={(e) => handleInputChange('min', e.target.value)}
+            className="h-9"
+          />
+        </div>
+
+        <div className="text-sm font-medium text-muted-foreground pb-2">
+          to
         </div>
         
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <Slider
-              value={[min]}
-              min={18}
-              max={80}
-              step={1}
-              onValueChange={handleMinChange}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Slider
-              value={[max]}
-              min={19}
-              max={80}
-              step={1}
-              onValueChange={handleMaxChange}
-            />
-          </div>
+        <div className="space-y-1 w-20">
+          <Label htmlFor="maxAge">Max Age</Label>
+          <Input 
+            id="maxAge"
+            type="number" 
+            min={min + 1}
+            max={80}
+            value={max}
+            onChange={(e) => handleInputChange('max', e.target.value)}
+            className="h-9"
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-6 pt-2">
+        <div className="space-y-2">
+          <Label>Minimum Age: {min}</Label>
+          <Slider
+            value={[min]}
+            min={18}
+            max={79}
+            step={1}
+            onValueChange={handleMinChange}
+            className="py-1"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Maximum Age: {max}</Label>
+          <Slider
+            value={[max]}
+            min={min + 1}
+            max={80}
+            step={1}
+            onValueChange={handleMaxChange}
+            className="py-1"
+          />
         </div>
       </div>
       

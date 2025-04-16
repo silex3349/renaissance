@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import LocationDetection from "@/components/location/LocationDetection";
 import AgeRangeSelector from "@/components/profile/AgeRangeSelector";
 import InterestSelector from "@/components/profile/InterestSelector";
-import { ArrowLeft, Upload, Twitter, Instagram, Linkedin, Globe, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Upload, Twitter, Instagram, Linkedin, Globe, Trash2, Plus, Camera, X } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -51,6 +51,13 @@ const platformIcons = {
   website: <Globe className="h-4 w-4" />,
 };
 
+const platformLabels = {
+  twitter: "Twitter Profile URL",
+  instagram: "Instagram Profile URL",
+  linkedin: "LinkedIn Profile URL",
+  website: "Website URL",
+};
+
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { user, updateUserProfile, updateUserAgeRange, updateUserInterests } = useAuth();
@@ -64,6 +71,8 @@ const ProfileEdit = () => {
     { id: "2", platform: "instagram", url: "" },
   ]);
   const [isInterestsDialogOpen, setIsInterestsDialogOpen] = useState(false);
+  const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize the form with user data
   const form = useForm<ProfileFormValues>({
@@ -183,6 +192,38 @@ const ProfileEdit = () => {
     setSocialProfiles(profiles => profiles.filter(profile => profile.id !== id));
   };
 
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // In a real app, you would upload this file to your server/storage
+      // For now, we'll just create a local URL
+      const imageUrl = URL.createObjectURL(file);
+      setAvatar(imageUrl);
+      
+      // Reset the input so the same file can be selected again if needed
+      e.target.value = '';
+      
+      toast({
+        title: "Photo uploaded",
+        description: "Your profile photo has been updated."
+      });
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatar("");
+    toast({
+      title: "Photo removed",
+      description: "Your profile photo has been removed."
+    });
+  };
+
   if (!user) {
     return null; // Will redirect in useEffect
   }
@@ -204,30 +245,61 @@ const ProfileEdit = () => {
       <div className="px-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Avatar Section */}
+            {/* Avatar Section - Improved */}
             <div className="flex flex-col items-center">
               <div className="relative group">
-                <Avatar className="h-24 w-24 mb-2 border-2 border-primary/20 group-hover:border-primary/50 transition-all">
-                  <AvatarImage 
-                    src={avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=user"} 
-                    alt={form.getValues("name") || "User"} 
-                  />
-                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="bg-black/50 rounded-full w-full h-full flex items-center justify-center">
-                    <Upload className="h-6 w-6 text-white" />
-                  </div>
+                <div 
+                  className="relative cursor-pointer"
+                  onMouseEnter={() => setIsHoveringAvatar(true)}
+                  onMouseLeave={() => setIsHoveringAvatar(false)}
+                  onClick={handleAvatarClick}
+                >
+                  <Avatar className="h-28 w-28 mb-2 border-2 border-primary/20 group-hover:border-primary/50 transition-all">
+                    {avatar ? (
+                      <AvatarImage 
+                        src={avatar} 
+                        alt={form.getValues("name") || "User"} 
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-muted flex items-center justify-center">
+                        <Camera className="h-10 w-10 text-muted-foreground opacity-50" />
+                      </AvatarFallback>
+                    )}
+                    {!avatar && <AvatarFallback>{getUserInitials()}</AvatarFallback>}
+                  </Avatar>
+                  
+                  {isHoveringAvatar && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+                      <Camera className="h-10 w-10 text-white" />
+                    </div>
+                  )}
                 </div>
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
               </div>
               
-              <Button type="button" variant="outline" size="sm" className="mt-2">
-                <Upload className="h-4 w-4 mr-2" />
-                Change Photo
-              </Button>
+              <div className="flex gap-2 mt-2">
+                <Button type="button" variant="outline" size="sm" onClick={handleAvatarClick}>
+                  <Camera className="h-4 w-4 mr-2" />
+                  {avatar ? "Change Photo" : "Upload Photo"}
+                </Button>
+                
+                {avatar && (
+                  <Button type="button" variant="outline" size="sm" onClick={removeAvatar} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                    <X className="h-4 w-4 mr-2" />
+                    Remove
+                  </Button>
+                )}
+              </div>
             </div>
             
-            {/* Personal Information */}
+            {/* Personal Information - Improved */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Personal Information</CardTitle>
@@ -244,7 +316,7 @@ const ProfileEdit = () => {
                           <Input 
                             placeholder="Your full name" 
                             {...field} 
-                            className="focus-visible:ring-primary/30"
+                            className="focus-visible:ring-primary/30 focus-visible:border-primary"
                           />
                         </FormControl>
                         <FormMessage />
@@ -283,10 +355,10 @@ const ProfileEdit = () => {
                         <FormLabel>Bio</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Tell us about yourself" 
+                            placeholder="Tell the community about yourself..." 
                             {...field} 
                             rows={4}
-                            className="focus-visible:ring-primary/30"
+                            className="focus-visible:ring-primary/30 focus-visible:border-primary min-h-[100px]"
                           />
                         </FormControl>
                         <FormDescription>
@@ -300,7 +372,7 @@ const ProfileEdit = () => {
               </CardContent>
             </Card>
             
-            {/* Interests */}
+            {/* Interests - Improved */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Your Interests</CardTitle>
@@ -322,6 +394,15 @@ const ProfileEdit = () => {
                             className="bg-primary/20 text-primary hover:bg-primary/30 px-3 py-1"
                           >
                             {interest.name}
+                            <button 
+                              onClick={(e) => {
+                                e.preventDefault(); // Prevent form submission
+                                handleInterestsChange(selectedInterests.filter(id => id !== interest.id));
+                              }}
+                              className="ml-2 text-primary/70 hover:text-primary"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
                           </Badge>
                         ))
                     ) : (
@@ -362,7 +443,7 @@ const ProfileEdit = () => {
               </CardContent>
             </Card>
             
-            {/* Social Profiles */}
+            {/* Social Profiles - Improved */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Social Profiles</CardTitle>
@@ -374,9 +455,9 @@ const ProfileEdit = () => {
                   </p>
                   
                   {socialProfiles.map((profile) => (
-                    <div key={profile.id} className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                    <div key={profile.id} className="space-y-3 p-3 border rounded-lg hover:border-primary/30 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
                           <div className="bg-muted rounded-full p-1.5">
                             {platformIcons[profile.platform]}
                           </div>
@@ -387,7 +468,7 @@ const ProfileEdit = () => {
                               "platform", 
                               e.target.value as SocialProfile["platform"]
                             )}
-                            className="text-sm bg-transparent border-none focus:outline-none focus:ring-0 p-0 text-muted-foreground"
+                            className="text-sm bg-transparent border-none focus:outline-none focus:ring-0 p-0"
                           >
                             <option value="twitter">Twitter</option>
                             <option value="instagram">Instagram</option>
@@ -395,22 +476,23 @@ const ProfileEdit = () => {
                             <option value="website">Website</option>
                           </select>
                         </div>
-                        <Input
-                          value={profile.url}
-                          onChange={(e) => updateSocialProfile(profile.id, "url", e.target.value)}
-                          placeholder={`Your ${profile.platform} URL`}
-                          className="focus-visible:ring-primary/30"
-                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSocialProfile(profile.id)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeSocialProfile(profile.id)}
-                        className="text-muted-foreground hover:text-destructive mt-7"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      
+                      <Input
+                        value={profile.url}
+                        onChange={(e) => updateSocialProfile(profile.id, "url", e.target.value)}
+                        placeholder={platformLabels[profile.platform]}
+                        className="focus-visible:ring-primary/30 focus-visible:border-primary"
+                      />
                     </div>
                   ))}
                   
@@ -427,27 +509,40 @@ const ProfileEdit = () => {
               </CardContent>
             </Card>
             
+            {/* Age Range - Improved */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Age Range</CardTitle>
               </CardHeader>
               <CardContent>
-                <AgeRangeSelector 
-                  initialAgeRange={user.ageRange} 
-                  onChange={handleAgeRangeChange} 
-                />
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Choose the age range you're interested in connecting with
+                  </p>
+                  <AgeRangeSelector 
+                    initialAgeRange={user.ageRange} 
+                    onChange={handleAgeRangeChange} 
+                  />
+                </div>
               </CardContent>
             </Card>
             
+            {/* Location - Improved */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium text-primary">Location</CardTitle>
               </CardHeader>
               <CardContent>
-                <LocationDetection />
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Share your location to connect with people and events near you
+                  </p>
+                  <LocationDetection />
+                </div>
               </CardContent>
             </Card>
             
+            {/* Save & Cancel Buttons - Improved */}
             <div className="flex gap-4">
               <Button 
                 type="button" 
@@ -459,7 +554,7 @@ const ProfileEdit = () => {
               </Button>
               <Button 
                 type="submit" 
-                className="flex-1 bg-primary hover:bg-primary/90" 
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white shadow-md transition-all" 
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Saving..." : "Save Changes"}
