@@ -7,21 +7,32 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Calendar, Edit2, Clock, Settings, LogOut } from "lucide-react";
+import { MapPin, Calendar, Edit2, Clock, Settings, LogOut, Camera, Users, FileText, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { Event, User } from "@/types";
 import { MOCK_EVENTS, MOCK_USERS } from "@/services/mockData";
 import { supabase } from "@/lib/supabaseClient";
+import { Progress } from "@/components/ui/progress";
+import ProfileStats from "@/components/profile/ProfileStats";
+import ProfileCompletion from "@/components/profile/ProfileCompletion";
+import SocialLinks from "@/components/profile/SocialLinks";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const { id } = useParams();
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser, logout, updateUserProfile } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<User | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [joinedEvents, setJoinedEvents] = useState<Event[]>([]);
-  const [pastEvents, setpastEvents] = useState<Event[]>([]);
+  const [pastEvents, setPastEvents] = useState<Event[]>([]);
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [editedBio, setEditedBio] = useState("");
+  const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
   
   const isOwnProfile = !id || (authUser && id === authUser.id);
   
@@ -69,7 +80,11 @@ const Profile = () => {
           const past = events.filter(event => new Date(event.dateTime) < now);
           
           setJoinedEvents(upcoming);
-          setpastEvents(past);
+          setPastEvents(past);
+          
+          if (profileData.bio) {
+            setEditedBio(profileData.bio);
+          }
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -80,6 +95,25 @@ const Profile = () => {
     
     fetchProfile();
   }, [id, authUser, isOwnProfile]);
+
+  const handleSaveBio = () => {
+    if (isOwnProfile && profile) {
+      updateUserProfile({ bio: editedBio });
+      setProfile({ ...profile, bio: editedBio });
+      setIsEditingBio(false);
+      toast({
+        title: "Bio updated",
+        description: "Your bio has been successfully updated."
+      });
+    }
+  };
+  
+  const handleLogout = async () => {
+    if (supabaseUser) {
+      await supabase.auth.signOut();
+    }
+    logout();
+  };
   
   if (isLoading) {
     return (
@@ -112,51 +146,76 @@ const Profile = () => {
   const userName = supabaseUser 
     ? (supabaseUser.user_metadata?.username || supabaseUser.email.split("@")[0]) 
     : (profile?.name || "Anonymous User");
+
+  const displayName = supabaseUser
+    ? (supabaseUser.user_metadata?.full_name || userName)
+    : (profile?.name || userName);
     
   const userBio = supabaseUser
-    ? (supabaseUser.user_metadata?.bio || "No bio provided.")
-    : (profile?.bio || "No bio provided.");
+    ? (supabaseUser.user_metadata?.bio || "")
+    : (profile?.bio || "");
     
   const userEmail = supabaseUser ? supabaseUser.email : profile?.email;
   
   const userJoinDate = supabaseUser 
     ? new Date(supabaseUser.created_at) 
     : (profile?.createdAt || new Date());
-  
-  const handleLogout = async () => {
-    if (supabaseUser) {
-      await supabase.auth.signOut();
-    }
-    logout();
+
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = () => {
+    const totalFields = 4; // Name, Bio, Email, Interests
+    let completedFields = 0;
+    
+    if (displayName && displayName !== "Anonymous User") completedFields++;
+    if (userBio && userBio.trim() !== "") completedFields++;
+    if (userEmail) completedFields++;
+    if (profile?.interests && profile.interests.length > 0) completedFields++;
+    
+    return Math.round((completedFields / totalFields) * 100);
   };
   
+  const profileCompletion = calculateProfileCompletion();
+  
   return (
-    <div className="container py-8">
-      <Card className="shadow-md border">
+    <div className="container py-8 px-4 md:px-8">
+      <Card className="shadow-md border rounded-xl overflow-hidden">
         <CardHeader className="relative pt-8 sm:pt-6">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Avatar className="w-24 h-24 border-2 border-primary mb-2 sm:mb-0">
-              {supabaseUser ? (
-                <AvatarImage 
-                  src={`https://api.dicebear.com/7.x/big-ears-neutral/svg?seed=${userEmail}`} 
-                  alt={userName} 
-                />
-              ) : (
-                <AvatarImage src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" />
-              )}
-              <AvatarFallback>
-                {userName 
-                  ? userName.split(" ").map(n => n[0]).join("").toUpperCase()
-                  : userEmail.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="text-center sm:text-left">
-              <CardTitle className="text-2xl font-bold">
-                {userName}
-              </CardTitle>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div 
+              className="relative group"
+              onMouseEnter={() => setIsHoveringAvatar(true)}
+              onMouseLeave={() => setIsHoveringAvatar(false)}
+            >
+              <Avatar className="w-24 h-24 border-2 border-primary mb-2 sm:mb-0 transition-all hover:opacity-90">
+                {supabaseUser ? (
+                  <AvatarImage 
+                    src={`https://api.dicebear.com/7.x/big-ears-neutral/svg?seed=${userEmail}`} 
+                    alt={userName} 
+                  />
+                ) : (
+                  <AvatarImage src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" />
+                )}
+                <AvatarFallback>
+                  {displayName 
+                    ? displayName.split(" ").map(n => n[0]).join("").toUpperCase()
+                    : userEmail.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               
-              <CardDescription className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-1">
+              {isOwnProfile && isHoveringAvatar && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+                  <Upload className="h-8 w-8 text-white" />
+                </div>
+              )}
+            </div>
+            
+            <div className="text-center sm:text-left flex-1">
+              <CardTitle className="text-2xl font-bold">
+                {displayName}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">{userEmail}</p>
+              
+              <CardDescription className="flex flex-wrap justify-center sm:justify-start items-center gap-3 mt-2">
                 {profile?.location && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
@@ -164,11 +223,15 @@ const Profile = () => {
                   </span>
                 )}
                 
-                <span className="flex items-center gap-1">
+                <Badge variant="outline" className="flex items-center gap-1 font-normal">
                   <Clock className="h-3 w-3" />
                   Joined {format(userJoinDate, "MMMM yyyy")}
-                </span>
+                </Badge>
               </CardDescription>
+              
+              {isOwnProfile && profileCompletion < 100 && (
+                <ProfileCompletion completion={profileCompletion} />
+              )}
             </div>
           </div>
           
@@ -178,14 +241,7 @@ const Profile = () => {
                 variant="outline" 
                 size="icon"
                 onClick={() => navigate("/profile/edit")}
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => navigate("/profile/settings")}
+                className="transition-colors hover:bg-primary/10"
               >
                 <Settings className="h-4 w-4" />
               </Button>
@@ -194,7 +250,7 @@ const Profile = () => {
                 variant="outline" 
                 size="icon"
                 onClick={handleLogout}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -202,27 +258,85 @@ const Profile = () => {
           )}
         </CardHeader>
         
-        <CardContent className="pt-6">
+        {isOwnProfile && (
+          <div className="px-6 mb-4">
+            <ProfileStats 
+              followers={85} 
+              following={134} 
+              posts={24} 
+              events={joinedEvents.length + pastEvents.length} 
+            />
+          </div>
+        )}
+        
+        <CardContent className="pt-0">
           <Tabs defaultValue="about" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="about">About</TabsTrigger>
-              <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger 
+                value="about" 
+                className="transition-colors hover:text-primary"
+              >
+                About
+              </TabsTrigger>
+              <TabsTrigger 
+                value="events"
+                className="transition-colors hover:text-primary"
+              >
+                Events
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="about" className="pt-4">
-              <div className="space-y-4">
+            <TabsContent value="about" className="pt-4 space-y-6">
+              <div className="space-y-5">
                 <div>
-                  <h3 className="font-medium text-sm mb-1">Bio</h3>
-                  <p className="text-muted-foreground">{userBio}</p>
+                  <h3 className="font-medium text-sm mb-2 text-muted-foreground">Bio</h3>
+                  {isEditingBio && isOwnProfile ? (
+                    <div className="space-y-2">
+                      <Textarea 
+                        value={editedBio} 
+                        onChange={(e) => setEditedBio(e.target.value)}
+                        placeholder="Tell the community about yourself..."
+                        className="min-h-[100px]"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setIsEditingBio(false);
+                            setEditedBio(userBio);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={handleSaveBio}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      className={`${isOwnProfile ? "cursor-pointer hover:bg-muted/50 p-2 rounded-md -ml-2" : ""}`}
+                      onClick={() => isOwnProfile && setIsEditingBio(true)}
+                    >
+                      {userBio ? (
+                        <p>{userBio}</p>
+                      ) : (
+                        <p className="text-muted-foreground italic">
+                          {isOwnProfile 
+                            ? "Tell the community a bit about yourself. Click to add a bio."
+                            : "No bio provided."}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
                 <div>
-                  <h3 className="font-medium text-sm mb-1">Email</h3>
-                  <p className="text-muted-foreground">{userEmail}</p>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium text-sm mb-1">Interests</h3>
+                  <h3 className="font-medium text-sm mb-2 text-muted-foreground">Interests</h3>
                   {profile?.interests && profile.interests.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {profile.interests.map(interest => (
@@ -232,21 +346,34 @@ const Profile = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground">No interests added yet.</p>
+                    <div 
+                      className={`${isOwnProfile ? "cursor-pointer hover:bg-muted/50 p-2 rounded-md -ml-2" : ""}`}
+                      onClick={() => isOwnProfile && navigate("/profile/edit")}
+                    >
+                      <p className="text-muted-foreground italic">
+                        {isOwnProfile 
+                          ? "Add your interests to connect with like-minded people. Click to add."
+                          : "No interests added yet."}
+                      </p>
+                    </div>
                   )}
                 </div>
+                
+                {isOwnProfile && (
+                  <SocialLinks />
+                )}
               </div>
             </TabsContent>
             
             <TabsContent value="events" className="pt-4">
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-sm mb-2">Upcoming Events</h3>
+                  <h3 className="font-medium text-sm mb-2 text-muted-foreground">Upcoming Events</h3>
                   
                   {joinedEvents.length > 0 ? (
                     <div className="grid gap-4">
                       {joinedEvents.map(event => (
-                        <Card key={event.id} className="overflow-hidden border-0 shadow-sm">
+                        <Card key={event.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex flex-col sm:flex-row">
                             <div 
                               className="w-full sm:w-24 h-24 bg-cover bg-center"
@@ -273,12 +400,12 @@ const Profile = () => {
                 </div>
                 
                 <div>
-                  <h3 className="font-medium text-sm mb-2">Past Events</h3>
+                  <h3 className="font-medium text-sm mb-2 text-muted-foreground">Past Events</h3>
                   
                   {pastEvents.length > 0 ? (
                     <div className="grid gap-4">
                       {pastEvents.map(event => (
-                        <Card key={event.id} className="overflow-hidden border-0 shadow-sm opacity-75">
+                        <Card key={event.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex flex-col sm:flex-row">
                             <div 
                               className="w-full sm:w-24 h-24 bg-cover bg-center"

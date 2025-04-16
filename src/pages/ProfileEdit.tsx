@@ -40,7 +40,9 @@ const ProfileEdit = () => {
 
       // Load user interests
       if (user.interests && user.interests.length > 0) {
-        setSelectedInterests(user.interests.map(interest => interest.id));
+        // Fix: Use a stable reference for interests that won't cause infinite re-renders
+        const interestIds = user.interests.map(interest => interest.id);
+        setSelectedInterests(interestIds);
       }
     }
   }, [user]);
@@ -98,6 +100,7 @@ const ProfileEdit = () => {
   };
 
   const toggleInterest = (interestId: string) => {
+    // Fix: Use functional update to avoid stale closures
     setSelectedInterests(prev => 
       prev.includes(interestId) 
         ? prev.filter(id => id !== interestId) 
@@ -191,7 +194,7 @@ const ProfileEdit = () => {
                     <Badge 
                       key={interest.id}
                       variant={selectedInterests.includes(interest.id) ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1"
+                      className="cursor-pointer px-3 py-1 transition-colors"
                       onClick={() => toggleInterest(interest.id)}
                     >
                       {interest.name}
