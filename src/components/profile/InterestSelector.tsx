@@ -5,8 +5,10 @@ import { INTERESTS, INTEREST_CATEGORIES } from "@/services/mockData";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 interface InterestSelectorProps {
   onComplete?: () => void;
@@ -60,6 +62,11 @@ const InterestSelector = ({
     return matchesSearch && matchesCategory;
   });
 
+  // Get selected interests objects for display
+  const selectedInterestObjects = availableInterests.filter(interest => 
+    selectedInterests.includes(interest.id)
+  );
+
   const handleSave = () => {
     // Save selected interests to user profile
     updateUserInterests(selectedInterests);
@@ -76,6 +83,30 @@ const InterestSelector = ({
         </p>
       </div>
 
+      {/* Selected interests row at the top */}
+      {selectedInterests.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">Selected Interests</h4>
+          <div className="flex flex-wrap gap-2">
+            {selectedInterestObjects.map(interest => (
+              <Badge 
+                key={interest.id} 
+                variant="secondary" 
+                className="px-3 py-1.5 rounded-full flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20"
+              >
+                {interest.name}
+                <button 
+                  onClick={() => handleInterestToggle(interest.id)}
+                  className="ml-1 rounded-full hover:bg-primary/20 p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="relative">
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
@@ -86,12 +117,12 @@ const InterestSelector = ({
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 overflow-x-auto pb-2">
+      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-thin">
         <Button
           variant={activeCategory === "all" ? "default" : "outline"}
           size="sm"
           onClick={() => setActiveCategory("all")}
-          className="rounded-full"
+          className="rounded-full whitespace-nowrap"
         >
           All
         </Button>
@@ -101,7 +132,7 @@ const InterestSelector = ({
             variant={activeCategory === category ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveCategory(category)}
-            className="rounded-full"
+            className="rounded-full whitespace-nowrap"
           >
             {category}
           </Button>
@@ -109,28 +140,30 @@ const InterestSelector = ({
       </div>
 
       <div className="border rounded-lg p-4 bg-card">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {filteredInterests.map((interest) => (
-            <button
-              key={interest.id}
-              onClick={() => handleInterestToggle(interest.id)}
-              className={cn(
-                "interest-tag",
-                selectedInterests.includes(interest.id)
-                  ? "interest-tag-selected"
-                  : "interest-tag-unselected"
-              )}
-            >
-              {interest.name}
-            </button>
-          ))}
-        </div>
-        
-        {filteredInterests.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            No interests found matching your search.
+        <ScrollArea className="h-[280px] pr-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {filteredInterests.map((interest) => (
+              <button
+                key={interest.id}
+                onClick={() => handleInterestToggle(interest.id)}
+                className={cn(
+                  "interest-tag transition-all",
+                  selectedInterests.includes(interest.id)
+                    ? "bg-primary/20 text-primary border-primary/50 hover:bg-primary/30"
+                    : "bg-muted text-muted-foreground border-transparent hover:bg-muted/70"
+                )}
+              >
+                {interest.name}
+              </button>
+            ))}
           </div>
-        )}
+          
+          {filteredInterests.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No interests found matching your search.
+            </div>
+          )}
+        </ScrollArea>
       </div>
 
       <div className="text-sm text-muted-foreground">
