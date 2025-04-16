@@ -35,7 +35,7 @@ const SocialProfilesSection = ({ initialProfiles, onChange }: SocialProfilesSect
   const [socialProfiles, setSocialProfiles] = useState<SocialProfile[]>(initialProfiles);
 
   const addSocialProfile = () => {
-    const newProfiles = [
+    const newProfiles: SocialProfile[] = [
       ...socialProfiles, 
       { 
         id: Date.now().toString(), 
