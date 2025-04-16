@@ -75,30 +75,31 @@ const InterestSelector = ({
   };
 
   return (
-    <div className={cn("space-y-6 py-4 animate-fade-in", className)}>
-      <div className="space-y-2">
+    <div className={cn("space-y-5 py-2 animate-fade-in", className)}>
+      <div className="space-y-1.5">
         <h3 className="text-xl font-medium">Select Your Interests</h3>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Choose interests that resonate with you. We'll use these to suggest events and connect you with like-minded people.
         </p>
       </div>
 
       {/* Selected interests row at the top */}
       {selectedInterests.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">Selected Interests</h4>
-          <ScrollArea className="max-h-28">
-            <div className="flex flex-wrap gap-2 pb-2">
+        <div className="space-y-1.5">
+          <h4 className="text-xs font-medium text-muted-foreground">Selected Interests</h4>
+          <ScrollArea className="max-h-24">
+            <div className="flex flex-wrap gap-1.5 pb-1">
               {selectedInterestObjects.map(interest => (
                 <Badge 
                   key={interest.id} 
-                  variant="secondary" 
-                  className="px-3 py-1.5 rounded-full flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20"
+                  variant="outline" 
+                  className="px-2.5 py-1 rounded-full flex items-center gap-1 border-primary/20 text-primary hover:bg-transparent hover:border-primary"
                 >
                   {interest.name}
                   <button 
                     onClick={() => handleInterestToggle(interest.id)}
-                    className="ml-1 rounded-full hover:bg-primary/20 p-0.5"
+                    className="ml-1 text-primary/70 hover:text-primary"
+                    aria-label={`Remove ${interest.name}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -113,29 +114,29 @@ const InterestSelector = ({
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search interests..."
-          className="pl-10"
+          className="pl-10 border-0 bg-muted/50 focus-visible:ring-1 focus-visible:ring-primary/30"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       <ScrollArea className="max-h-12">
-        <div className="flex flex-nowrap gap-2 pb-2">
+        <div className="flex flex-nowrap gap-1.5 pb-1">
           <Button
-            variant={activeCategory === "all" ? "default" : "outline"}
+            variant={activeCategory === "all" ? "default" : "ghost"}
             size="sm"
             onClick={() => setActiveCategory("all")}
-            className="rounded-full whitespace-nowrap"
+            className="rounded-full whitespace-nowrap text-xs px-3 py-1 h-auto"
           >
             All
           </Button>
           {INTEREST_CATEGORIES.map((category) => (
             <Button
               key={category}
-              variant={activeCategory === category ? "default" : "outline"}
+              variant={activeCategory === category ? "default" : "ghost"}
               size="sm"
               onClick={() => setActiveCategory(category)}
-              className="rounded-full whitespace-nowrap"
+              className="rounded-full whitespace-nowrap text-xs px-3 py-1 h-auto"
             >
               {category}
             </Button>
@@ -143,18 +144,18 @@ const InterestSelector = ({
         </div>
       </ScrollArea>
 
-      <div className="border rounded-lg p-4 bg-card">
-        <ScrollArea className="h-[280px] pr-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+      <div className="border-0 rounded-lg p-2 bg-transparent">
+        <ScrollArea className="h-[280px] pr-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
             {filteredInterests.map((interest) => (
               <button
                 key={interest.id}
                 onClick={() => handleInterestToggle(interest.id)}
                 className={cn(
-                  "interest-tag transition-all p-2 rounded-lg border text-sm",
+                  "transition-all py-2 px-3 rounded-md text-left text-sm",
                   selectedInterests.includes(interest.id)
-                    ? "bg-primary/20 text-primary border-primary/50 hover:bg-primary/30"
-                    : "bg-muted text-muted-foreground border-transparent hover:bg-muted/70"
+                    ? "text-primary hover:bg-primary/5"
+                    : "text-foreground hover:bg-muted"
                 )}
               >
                 {interest.name}
@@ -170,17 +171,17 @@ const InterestSelector = ({
         </ScrollArea>
       </div>
 
-      <div className="text-sm text-muted-foreground">
+      <div className="text-xs text-muted-foreground">
         Selected {selectedInterests.length} of {availableInterests.length} interests
       </div>
 
       <Button 
-        className="w-full bg-purple-600 hover:bg-purple-700" 
+        className="w-full bg-purple-600 hover:bg-purple-700 shadow-none" 
         onClick={handleSave}
         disabled={selectedInterests.length === 0}
       >
         {showContinueOnly ? (
-          <>Continue <ChevronRight className="ml-2 h-4 w-4" /></>
+          <>Continue <ChevronRight className="ml-1 h-4 w-4" /></>
         ) : (
           "Save Interests"
         )}
