@@ -21,30 +21,28 @@ import "@/styles/chat.css"; // Import chat styles
 const queryClient = new QueryClient();
 
 function App() {
-  const { loading } = useAuth();
+  const { isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return <div className="renaissance-container py-12">Loading...</div>;
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Index />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="edit-profile" element={<ProfileEdit />} />
-            <Route path="discover" element={<Discover />} />
-            <Route path="events/:id?" element={<Events />} />
-            <Route path="groups/:id?" element={<Groups />} />
-            <Route path="matching" element={<Matching />} />
-            <Route path="chats" element={<Chats />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </Router>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Index />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="edit-profile" element={<ProfileEdit />} />
+          <Route path="discover" element={<Discover />} />
+          <Route path="events/:id?" element={<Events />} />
+          <Route path="groups/:id?" element={<Groups />} />
+          <Route path="matching" element={<Matching />} />
+          <Route path="chats" element={<Chats />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
       <Toaster />
     </QueryClientProvider>
   );
