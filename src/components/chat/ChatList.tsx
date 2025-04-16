@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -11,11 +10,14 @@ import {
   CheckCheck,
   Video,
   Mic,
-  ImageIcon as Image,
+  Image as ImageIcon,
   UserPlus,
   Users,
   MessageSquare,
-  Filter
+  Filter,
+  BookOpen,
+  Palette,
+  Camera
 } from "lucide-react";
 import { MOCK_USERS } from "@/services/mockData";
 import { motion } from "framer-motion";
@@ -43,7 +45,8 @@ interface ChatInfo {
   type: "direct" | "group";
   name: string;
   avatar?: string;
-  interests?: Interest[]; // Add the interests property to the ChatInfo interface
+  interests?: Interest[];
+  sharedInterests?: Interest[];
   lastMessage: {
     text: string;
     time: Date;
@@ -58,6 +61,15 @@ interface ChatListProps {
   onSelectChat: (chatId: string) => void;
   selectedChatId?: string;
 }
+
+const getInterestIcon = (interestName: string) => {
+  const iconMap: Record<string, React.ComponentType> = {
+    "Reading": BookOpen,
+    "Art": Palette,
+    "Photography": Camera,
+  };
+  return iconMap[interestName] || MessageSquare;
+};
 
 const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,8 +86,9 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       type: "direct",
       name: "Sarah Johnson",
       avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=user_1",
+      sharedInterests: [{ id: "int1", name: "Reading", category: "Hobbies" }],
       lastMessage: {
-        text: "Hey! Are you coming to the event tomorrow?",
+        text: "Hey! Are you coming to the book club event tomorrow?",
         time: new Date(Date.now() - 1000 * 60 * 5),
         senderId: "user_1",
         status: "read",
@@ -87,7 +100,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       type: "group",
       name: "Photography Club",
       avatar: "https://api.dicebear.com/7.x/shapes/svg?seed=group_1",
-      interests: [{ id: "int1", name: "Photography", category: "Arts" }], // Add interests for group chats
+      interests: [{ id: "int1", name: "Photography", category: "Arts" }],
       lastMessage: {
         text: "Check out this awesome photo I took!",
         time: new Date(Date.now() - 1000 * 60 * 30),
@@ -114,7 +127,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       type: "group",
       name: "Weekend Hiking",
       avatar: "https://api.dicebear.com/7.x/shapes/svg?seed=group_2",
-      interests: [{ id: "int2", name: "Hiking", category: "Outdoors" }], // Add interests for group chats
+      interests: [{ id: "int2", name: "Hiking", category: "Outdoors" }],
       lastMessage: {
         text: "Let's meet at the trailhead at 9am",
         time: new Date(Date.now() - 1000 * 60 * 60 * 5),
@@ -168,7 +181,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
     if (!type || type === 'text') return null;
     switch (type) {
       case 'image':
-        return <Image className="h-4 w-4 text-muted-foreground mr-1" />;
+        return <ImageIcon className="h-4 w-4 text-muted-foreground mr-1" />;
       case 'voice':
         return <Mic className="h-4 w-4 text-muted-foreground mr-1" />;
       case 'video':
@@ -389,60 +402,76 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
             </div>
           ) : (
             <ul className="divide-y">
-              {filteredChats.map((chat) => (
-                <motion.li 
-                  key={chat.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className={`group hover:bg-muted/30 cursor-pointer transition-colors ${
-                    selectedChatId === chat.id ? "bg-muted/50" : ""
-                  }`}
-                  onClick={() => onSelectChat(chat.id)}
-                >
-                  <div className="flex items-start p-3 gap-3">
-                    <Avatar className="h-12 w-12 rounded-full border shrink-0">
-                      <AvatarImage src={chat.avatar} />
-                      <AvatarFallback>
-                        {chat.type === "group" ? (
-                          <Users className="h-6 w-6 text-muted-foreground" />
-                        ) : (
-                          chat.name.substring(0, 2).toUpperCase()
-                        )}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2">
-                        <div>
-                          <h3 className="font-medium truncate">{chat.name}</h3>
-                          {chat.type === "group" && chat.interests && chat.interests[0] && (
-                            <InterestTag interest={chat.interests[0]} />
+              {filteredChats.map((chat) => {
+                const InterestIcon = chat.interests?.[0] 
+                  ? getInterestIcon(chat.interests[0].name) 
+                  : MessageSquare;
+                
+                return (
+                  <motion.li 
+                    key={chat.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className={`group hover:bg-muted/30 cursor-pointer transition-colors ${
+                      selectedChatId === chat.id ? "bg-muted/50" : ""
+                    }`}
+                    onClick={() => onSelectChat(chat.id)}
+                  >
+                    <div className="flex items-start p-3 gap-3">
+                      <Avatar className="h-12 w-12 rounded-full border shrink-0 relative">
+                        <AvatarImage src={chat.avatar} />
+                        <AvatarFallback>
+                          {chat.type === "group" ? (
+                            <Users className="h-6 w-6 text-muted-foreground" />
+                          ) : (
+                            chat.name.substring(0, 2).toUpperCase()
                           )}
+                        </AvatarFallback>
+                        {chat.sharedInterests?.[0] && (
+                          <div 
+                            className="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white"
+                            style={{ backgroundColor: '#9b87f5' }}
+                            title={`Shared Interest: ${chat.sharedInterests[0].name}`}
+                          />
+                        )}
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium truncate">{chat.name}</h3>
+                            {chat.type === "group" && chat.interests && chat.interests[0] && (
+                              <div className="flex items-center gap-1">
+                                <InterestIcon className="h-4 w-4 text-muted-foreground" />
+                                <InterestTag interest={chat.interests[0]} />
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatTime(chat.lastMessage.time)}
+                          </span>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatTime(chat.lastMessage.time)}
-                        </span>
+                        <div className="flex items-center mt-1">
+                          {getMessageIcon(chat.lastMessage.type)}
+                          <span className="text-sm text-muted-foreground truncate">
+                            {chat.lastMessage.text}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center mt-1">
-                        {getMessageIcon(chat.lastMessage.type)}
-                        <span className="text-sm text-muted-foreground truncate">
-                          {chat.lastMessage.text}
-                        </span>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        {chat.lastMessage.isUnread && (
+                          <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>
+                        )}
+                        {chat.lastMessage.senderId === "me" && (
+                          <CheckCheck className={`h-4 w-4 ${
+                            chat.lastMessage.status === "read" ? "text-primary" : "text-muted-foreground"
+                          }`} />
+                        )}
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      {chat.lastMessage.isUnread && (
-                        <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>
-                      )}
-                      {chat.lastMessage.senderId === "me" && (
-                        <CheckCheck className={`h-4 w-4 ${
-                          chat.lastMessage.status === "read" ? "text-primary" : "text-muted-foreground"
-                        }`} />
-                      )}
-                    </div>
-                  </div>
-                </motion.li>
-              ))}
+                  </motion.li>
+                );
+              })}
             </ul>
           )}
         </TabsContent>
