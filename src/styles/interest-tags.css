@@ -1,30 +1,91 @@
 
 .interest-tag {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 400;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
   transition: all 0.15s ease-in-out;
   cursor: pointer;
   white-space: nowrap;
   border: none;
+  background: transparent;
 }
 
 .interest-tag-selected {
   color: hsl(var(--primary));
+  background-color: rgba(var(--primary-rgb), 0.08);
 }
 
 .interest-tag-selected:hover {
-  background-color: rgba(var(--primary-rgb), 0.05);
+  background-color: rgba(var(--primary-rgb), 0.12);
 }
 
 .interest-tag-unselected {
-  color: hsl(var(--foreground));
+  color: hsl(var(--muted-foreground));
 }
 
 .interest-tag-unselected:hover {
-  background-color: hsl(var(--muted));
+  background-color: hsl(var(--muted), 0.5);
+}
+
+/* New styles for chat interface */
+.chat-card {
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.chat-card:hover {
+  background-color: rgba(var(--primary-rgb), 0.04);
+}
+
+.chat-card-active {
+  background-color: rgba(var(--primary-rgb), 0.08);
+}
+
+.chat-card-active:hover {
+  background-color: rgba(var(--primary-rgb), 0.12);
+}
+
+.chat-avatar-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.online-indicator {
+  background-color: #10b981;
+}
+
+.offline-indicator {
+  background-color: #d1d5db;
+}
+
+.chat-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  white-space: nowrap;
+}
+
+.message-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-chat-illustration {
+  opacity: 0.7;
 }

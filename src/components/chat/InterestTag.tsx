@@ -1,18 +1,43 @@
 
-import { Badge } from "@/components/ui/badge";
+import React from "react";
 import { Interest } from "@/types";
 
 interface InterestTagProps {
   interest: Interest;
+  isSelected?: boolean;
+  onClick?: () => void;
+  className?: string;
+  minimal?: boolean;
 }
 
-export const InterestTag = ({ interest }: InterestTagProps) => {
+export const InterestTag: React.FC<InterestTagProps> = ({
+  interest,
+  isSelected = false,
+  onClick,
+  className = "",
+  minimal = false
+}) => {
+  const baseClasses = "interest-tag";
+  const selectedClasses = isSelected ? "interest-tag-selected" : "interest-tag-unselected";
+  
+  if (minimal) {
+    return (
+      <span 
+        className={`text-xs text-primary/80 mr-2 ${className}`}
+        onClick={onClick}
+      >
+        #{interest.name}
+      </span>
+    );
+  }
+  
   return (
-    <Badge 
-      variant="secondary" 
-      className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground hover:bg-muted/80 transition-colors"
+    <button
+      type="button"
+      className={`${baseClasses} ${selectedClasses} ${className}`}
+      onClick={onClick}
     >
       {interest.name}
-    </Badge>
+    </button>
   );
 };
