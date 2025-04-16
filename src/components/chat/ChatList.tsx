@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -35,12 +36,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { InterestTag } from "./InterestTag";
+import { Interest } from "@/types";
 
 interface ChatInfo {
   id: string;
   type: "direct" | "group";
   name: string;
   avatar?: string;
+  interests?: Interest[]; // Add the interests property to the ChatInfo interface
   lastMessage: {
     text: string;
     time: Date;
@@ -84,6 +87,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       type: "group",
       name: "Photography Club",
       avatar: "https://api.dicebear.com/7.x/shapes/svg?seed=group_1",
+      interests: [{ id: "int1", name: "Photography", category: "Arts" }], // Add interests for group chats
       lastMessage: {
         text: "Check out this awesome photo I took!",
         time: new Date(Date.now() - 1000 * 60 * 30),
@@ -110,6 +114,7 @@ const ChatList = ({ onSelectChat, selectedChatId }: ChatListProps) => {
       type: "group",
       name: "Weekend Hiking",
       avatar: "https://api.dicebear.com/7.x/shapes/svg?seed=group_2",
+      interests: [{ id: "int2", name: "Hiking", category: "Outdoors" }], // Add interests for group chats
       lastMessage: {
         text: "Let's meet at the trailhead at 9am",
         time: new Date(Date.now() - 1000 * 60 * 60 * 5),
