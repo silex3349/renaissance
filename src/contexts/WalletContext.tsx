@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 import { Transaction } from "@/types";
 
@@ -29,26 +29,22 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     
     setIsLoading(true);
     try {
-      // Fetch user's profile for current balance
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('coins')
-        .eq('id', user.id)
-        .single();
+      // Use RPC call instead of direct table query
+      const { data: userProfile, error: profileError } = await supabase.rpc('get_user_profile', {
+        user_uuid: user.id
+      });
 
       if (profileError) throw profileError;
-      setBalance(profile?.coins || 0);
+      setBalance(userProfile?.coins || 0);
 
-      // Fetch transaction history
-      const { data: transactionData, error: transactionError } = await supabase
-        .from('coin_transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('timestamp', { ascending: false });
+      // Use RPC call for transactions too
+      const { data: transactionData, error: transactionError } = await supabase.rpc('get_user_transactions', {
+        user_uuid: user.id
+      });
 
       if (transactionError) throw transactionError;
 
-      const formattedTransactions: Transaction[] = (transactionData || []).map(tx => ({
+      const formattedTransactions: Transaction[] = (transactionData || []).map((tx: any) => ({
         id: tx.id,
         type: tx.transaction_type,
         amount: tx.amount,
