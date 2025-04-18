@@ -14,9 +14,9 @@ interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   amount: number;
-  purpose: "event_creation" | "event_join";
-  eventId: string;
-  eventName: string;
+  purpose: "event_creation" | "event_join" | "group_creation" | "group_join";
+  itemId: string;
+  itemName: string;
   onPaymentComplete: () => void;
   onPaymentCancel: () => void;
 }
@@ -28,8 +28,8 @@ const PaymentDialog = ({
   onOpenChange,
   amount,
   purpose,
-  eventId,
-  eventName,
+  itemId,
+  itemName,
   onPaymentComplete,
   onPaymentCancel
 }: PaymentDialogProps) => {
@@ -40,8 +40,34 @@ const PaymentDialog = ({
   const [cvv, setCvv] = useState("");
   const [nameOnCard, setNameOnCard] = useState("");
 
-  const { balance, chargeEventCreationFee, chargeEventJoinFee } = useWallet();
+  const { 
+    balance, 
+    chargeEventCreationFee, 
+    chargeEventJoinFee,
+    chargeGroupCreationFee,
+    chargeGroupJoinFee 
+  } = useWallet();
   const { addNotification } = useNotifications();
+
+  const getPurposeDisplay = () => {
+    switch (purpose) {
+      case "event_creation": return "creating event";
+      case "event_join": return "joining event"; 
+      case "group_creation": return "creating group";
+      case "group_join": return "joining group";
+      default: return purpose;
+    }
+  };
+
+  const getRedirectUrl = () => {
+    switch (purpose) {
+      case "event_creation": return `/events/create`;
+      case "event_join": return `/events/${itemId}`;
+      case "group_creation": return `/groups`;
+      case "group_join": return `/groups/${itemId}`;
+      default: return "/";
+    }
+  };
 
   const handlePayment = async () => {
     setIsProcessing(true);
@@ -50,19 +76,30 @@ const PaymentDialog = ({
       let success = false;
       
       if (paymentMethod === "wallet") {
-        if (purpose === "event_creation") {
-          success = await chargeEventCreationFee(eventId, amount);
-        } else {
-          success = await chargeEventJoinFee(eventId, amount);
+        switch (purpose) {
+          case "event_creation":
+            success = await chargeEventCreationFee(itemId, amount);
+            break;
+          case "event_join":
+            success = await chargeEventJoinFee(itemId, amount);
+            break;
+          case "group_creation":
+            success = await chargeGroupCreationFee(itemId, amount);
+            break;
+          case "group_join":
+            success = await chargeGroupJoinFee(itemId, amount);
+            break;
         }
       } else {
+        // Simulate payment processing for card and banking
         await new Promise(resolve => setTimeout(resolve, 2000));
         success = true;
         
+        // Add notification for other payment methods
         addNotification({
           type: "paymentCompleted",
-          message: `Payment of 🪙${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} was successful.`,
-          actionUrl: purpose === "event_creation" ? `/events/create` : `/events/${eventId}`
+          message: `Payment of 🪙${amount} for ${getPurposeDisplay()} ${itemName} was successful.`,
+          actionUrl: getRedirectUrl()
         });
       }
       
@@ -74,7 +111,7 @@ const PaymentDialog = ({
         
         addNotification({
           type: "paymentFailed",
-          message: `Payment of 🪙${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} failed.`,
+          message: `Payment of 🪙${amount} for ${getPurposeDisplay()} ${itemName} failed.`,
           actionUrl: "/wallet"
         });
       }
@@ -94,26 +131,40 @@ const PaymentDialog = ({
 
   const isWalletDisabled = paymentMethod === "wallet" && balance < amount;
 
+  const getPaymentTitle = () => {
+    switch (purpose) {
+      case "event_creation": return "Pay Event Creation Fee";
+      case "event_join": return "Pay Event Join Fee";
+      case "group_creation": return "Pay Group Creation Fee";
+      case "group_join": return "Pay Group Join Fee";
+      default: return "Make Payment";
+    }
+  };
+
+  const getPaymentDescription = () => {
+    switch (purpose) {
+      case "event_creation": return "Fee for creating event:";
+      case "event_join": return "Fee for joining event:";
+      case "group_creation": return "Fee for creating group:";
+      case "group_join": return "Fee for joining group:";
+      default: return "Fee for:";
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {purpose === "event_creation" 
-              ? "Pay Event Creation Fee" 
-              : "Pay Event Join Fee"}
-          </DialogTitle>
+          <DialogTitle>{getPaymentTitle()}</DialogTitle>
         </DialogHeader>
         
         <div className="py-4">
           <div className="flex justify-between items-center mb-6 pb-4 border-b">
             <div>
               <p className="text-sm text-muted-foreground">
-                {purpose === "event_creation" 
-                  ? "Fee for creating event:" 
-                  : "Fee for joining event:"}
+                {getPaymentDescription()}
               </p>
-              <p className="font-medium">{eventName}</p>
+              <p className="font-medium">{itemName}</p>
             </div>
             <div className="text-right">
               <p className="text-xl font-bold flex items-center justify-end">

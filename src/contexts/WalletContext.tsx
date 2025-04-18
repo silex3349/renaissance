@@ -13,6 +13,8 @@ interface WalletContextType {
   withdrawFunds: (amount: number) => Promise<boolean>;
   chargeEventCreationFee: (eventId: string, amount: number) => Promise<boolean>;
   chargeEventJoinFee: (eventId: string, amount: number) => Promise<boolean>;
+  chargeGroupCreationFee: (groupId: string, amount: number) => Promise<boolean>;
+  chargeGroupJoinFee: (groupId: string, amount: number) => Promise<boolean>;
   refreshWallet: () => Promise<void>;
 }
 
@@ -34,6 +36,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         setBalance(data.balance);
         setTransactions(data.transactions);
       }
+    } catch (error) {
+      console.error("Error refreshing wallet:", error);
     } finally {
       setIsLoading(false);
     }

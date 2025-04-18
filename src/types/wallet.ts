@@ -1,5 +1,5 @@
 
-export type TransactionType = "deposit" | "withdrawal" | "event_creation_fee" | "event_join_fee";
+export type TransactionType = "deposit" | "withdrawal" | "event_creation_fee" | "event_join_fee" | "group_creation_fee" | "group_join_fee";
 
 export type TransactionStatus = "pending" | "completed" | "failed";
 
@@ -18,6 +18,7 @@ export interface TransactionResult {
   success: boolean;
   error?: string;
   transaction?: WalletTransaction;
+  newBalance?: number;
 }
 
 export interface WalletUpdateParams {
