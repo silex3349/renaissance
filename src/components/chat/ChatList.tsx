@@ -7,10 +7,8 @@ import {
   Video,
   Mic,
   Image as ImageIcon,
-  MessageSquare,
-  UserPlus,
-  Pin,
-  Users
+  Users,
+  Pin
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { InterestTag } from "./InterestTag";
@@ -191,11 +189,11 @@ const ChatList = ({ onSelectChat, selectedChatId, filterType = "all", searchTerm
       {filteredChats.map((chat) => (
         <motion.div
           key={chat.id}
-          className={`chat-card p-3 cursor-pointer ${
-            selectedChatId === chat.id ? "chat-card-active" : ""
-          } ${chat.isPinned ? "bg-muted/20" : ""}`}
+          className={`p-3 cursor-pointer hover:bg-muted/20 transition-colors ${
+            selectedChatId === chat.id ? "bg-muted/30" : ""
+          } ${chat.isPinned ? "bg-muted/10" : ""}`}
           onClick={() => onSelectChat(chat.id)}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
@@ -215,7 +213,7 @@ const ChatList = ({ onSelectChat, selectedChatId, filterType = "all", searchTerm
               </Avatar>
               
               {chat.type === "direct" && (
-                <div className={`chat-avatar-indicator ${chat.isOnline ? "online-indicator" : "offline-indicator"}`}></div>
+                <div className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-white ${chat.isOnline ? "bg-green-500" : "bg-gray-300"}`}></div>
               )}
               
               {chat.isPinned && (
@@ -261,7 +259,7 @@ const ChatList = ({ onSelectChat, selectedChatId, filterType = "all", searchTerm
               {/* Shared interests for direct chats */}
               {chat.type === "direct" && chat.sharedInterests && chat.sharedInterests.length > 0 && (
                 <div className="flex mt-0.5 mb-1">
-                  <div className="chat-pill bg-primary/10 text-xs text-primary">
+                  <div className="px-2 py-0.5 rounded-full bg-primary/10 text-xs text-primary">
                     <span>Common interest: {chat.sharedInterests[0].name}</span>
                   </div>
                 </div>
@@ -270,7 +268,7 @@ const ChatList = ({ onSelectChat, selectedChatId, filterType = "all", searchTerm
               <div className="flex items-center justify-between mt-1">
                 <div className="flex items-center max-w-[85%]">
                   {getMessageIcon(chat.lastMessage.type)}
-                  <span className="text-sm text-muted-foreground message-preview">
+                  <span className="text-sm text-muted-foreground truncate">
                     {chat.lastMessage.text}
                   </span>
                 </div>

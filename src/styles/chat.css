@@ -1,0 +1,28 @@
+
+/* Chat styling */
+.chat-avatar-indicator {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  bottom: -2px;
+  right: -2px;
+}
+
+.online-indicator {
+  background-color: #10b981; /* green-500 */
+}
+
+.offline-indicator {
+  background-color: #d1d5db; /* gray-300 */
+}
+
+.message-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Ensure we import this CSS in the main CSS file */

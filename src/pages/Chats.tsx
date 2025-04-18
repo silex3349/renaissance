@@ -4,18 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
   MessageSquare, 
-  Users, 
   Search, 
   Plus, 
-  ChevronLeft, 
-  Filter, 
-  Bell,
-  Archive,
-  CheckCheck,
-  Image as ImageIcon,
-  Mic,
-  Video,
-  MoreHorizontal,
+  ChevronLeft,
+  Filter,
   ArrowLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,17 +22,8 @@ import {
   DialogTitle,
   DialogTrigger 
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { InterestTag } from "@/components/chat/InterestTag";
-import { formatMessageTime, getInitials, getAvatarColor } from "@/utils/chatUtils";
 import ChatList from "@/components/chat/ChatList";
 import GroupChat from "@/components/chat/GroupChat";
 
@@ -50,9 +33,8 @@ const Chats = () => {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [chatView, setChatView] = useState<"desktop" | "mobile-list" | "mobile-chat">("desktop");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
-  const [showNewGroupDialog, setShowNewGroupDialog] = useState(false);
 
   // For mobile view, we'll toggle between list and chat
   useEffect(() => {
@@ -94,8 +76,14 @@ const Chats = () => {
       title: "New group",
       description: "Creating a new group..."
     });
-    setShowNewGroupDialog(false);
+    setShowNewChatDialog(false);
   };
+
+  const filters = [
+    { id: "all", label: "All" },
+    { id: "direct", label: "Direct" },
+    { id: "groups", label: "Groups" }
+  ];
 
   if (!user) {
     return (
@@ -123,10 +111,7 @@ const Chats = () => {
           {/* Chat List Panel */}
           <div className={`w-full md:w-1/3 border-r flex flex-col h-full ${chatView === "mobile-chat" ? "hidden md:flex" : ""}`}>
             <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                Messages
-              </h2>
+              <h2 className="text-xl font-semibold">Messages</h2>
               <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
                 <DialogTrigger asChild>
                   <Button
@@ -216,40 +201,42 @@ const Chats = () => {
             </div>
             
             <div className="p-3 border-b">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search conversations..." 
-                    className="pl-9 bg-muted/30 border-0 focus-visible:ring-1 focus-visible:ring-primary/50"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <Button variant="ghost" size="icon" className="shrink-0">
-                  <Filter className="h-4 w-4" />
-                </Button>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search conversations..." 
+                  className="pl-9 bg-muted/30 border-0 focus-visible:ring-1 focus-visible:ring-primary/50"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
             
-            <Tabs defaultValue="all" className="flex-1 flex flex-col">
-              <div className="px-1 pt-1">
-                <TabsList className="w-full grid grid-cols-3 h-10">
-                  <TabsTrigger value="all" onClick={() => setActiveTab("all")}>All</TabsTrigger>
-                  <TabsTrigger value="direct" onClick={() => setActiveTab("direct")}>Direct</TabsTrigger>
-                  <TabsTrigger value="groups" onClick={() => setActiveTab("groups")}>Groups</TabsTrigger>
-                </TabsList>
+            {/* Horizontal filter pills */}
+            <div className="px-3 py-2 border-b overflow-x-auto flex">
+              <div className="flex space-x-2">
+                {filters.map((filter) => (
+                  <Button
+                    key={filter.id}
+                    variant={activeFilter === filter.id ? "default" : "outline"}
+                    size="sm"
+                    className="rounded-full text-sm whitespace-nowrap"
+                    onClick={() => setActiveFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </Button>
+                ))}
               </div>
-              
-              <div className="flex-1 overflow-y-auto">
-                <ChatList 
-                  onSelectChat={handleSelectChat} 
-                  selectedChatId={selectedChatId}
-                  filterType={activeTab}
-                  searchTerm={searchTerm}
-                />
-              </div>
-            </Tabs>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              <ChatList 
+                onSelectChat={handleSelectChat} 
+                selectedChatId={selectedChatId}
+                filterType={activeFilter}
+                searchTerm={searchTerm}
+              />
+            </div>
           </div>
           
           {/* Chat View Panel */}
