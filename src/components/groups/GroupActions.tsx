@@ -1,8 +1,9 @@
 
 import React, { useState } from "react";
-import { BookmarkPlus, Share2 } from "lucide-react";
+import { BookmarkPlus, Share2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
