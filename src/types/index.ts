@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -104,7 +103,6 @@ export interface GroupChatMessage {
 // Add Transaction interface
 export interface Transaction {
   id: string;
-  userId: string;
   type: "deposit" | "withdrawal" | "event_creation_fee" | "event_join_fee";
   amount: number;
   description: string;
