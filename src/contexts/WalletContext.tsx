@@ -1,9 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { supabase } from "@/lib/supabaseClient";
-import { toast } from "sonner";
 import { Transaction } from "@/types";
+import { fetchWalletData } from "@/utils/walletOperations";
+import { useWalletActions } from "@/hooks/useWalletActions";
 
 interface WalletContextType {
   balance: number;
@@ -29,39 +29,17 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     
     setIsLoading(true);
     try {
-      // Use RPC call instead of direct table query
-      const { data: userProfile, error: profileError } = await supabase.rpc('get_user_profile', {
-        user_uuid: user.id
-      });
-
-      if (profileError) throw profileError;
-      setBalance(userProfile?.coins || 0);
-
-      // Use RPC call for transactions too
-      const { data: transactionData, error: transactionError } = await supabase.rpc('get_user_transactions', {
-        user_uuid: user.id
-      });
-
-      if (transactionError) throw transactionError;
-
-      const formattedTransactions: Transaction[] = (transactionData || []).map((tx: any) => ({
-        id: tx.id,
-        type: tx.transaction_type,
-        amount: tx.amount,
-        description: tx.description || '',
-        timestamp: new Date(tx.timestamp),
-        status: 'completed',
-        relatedItemId: tx.details?.itemId
-      }));
-
-      setTransactions(formattedTransactions);
-    } catch (error) {
-      console.error("Error fetching wallet data:", error);
-      toast.error("Failed to load wallet data");
+      const data = await fetchWalletData(user.id);
+      if (data) {
+        setBalance(data.balance);
+        setTransactions(data.transactions);
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  const walletActions = useWalletActions(user?.id, balance, refreshWallet);
 
   useEffect(() => {
     if (user) {
@@ -73,128 +51,13 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user]);
 
-  const updateCoins = async (
-    amount: number, 
-    transactionType: string, 
-    description: string, 
-    details?: any
-  ): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { data, error } = await supabase.rpc('update_user_coins', {
-        user_uuid: user.id,
-        amount,
-        transaction_type: transactionType,
-        details_json: details || null,
-        transaction_description: description
-      });
-
-      if (error) throw error;
-
-      if (data) {
-        await refreshWallet();
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error(`Error updating coins:`, error);
-      toast.error("Failed to process transaction");
-      return false;
-    }
-  };
-
-  const depositFunds = async (amount: number): Promise<boolean> => {
-    if (!user || amount <= 0) {
-      toast.error("Invalid deposit amount");
-      return false;
-    }
-
-    const success = await updateCoins(
-      amount,
-      'deposit',
-      'Added funds to wallet'
-    );
-
-    if (success) {
-      toast.success(`Successfully added 🪙${amount} to your wallet`);
-    }
-    return success;
-  };
-
-  const withdrawFunds = async (amount: number): Promise<boolean> => {
-    if (!user || amount <= 0) {
-      toast.error("Invalid withdrawal amount");
-      return false;
-    }
-
-    if (amount > balance) {
-      toast.error("Insufficient funds");
-      return false;
-    }
-
-    const success = await updateCoins(
-      -amount,
-      'withdrawal',
-      'Withdrew funds from wallet'
-    );
-
-    if (success) {
-      toast.success(`Successfully withdrew 🪙${amount} from your wallet`);
-    }
-    return success;
-  };
-
-  const chargeEventCreationFee = async (eventId: string, amount: number): Promise<boolean> => {
-    if (!user || amount <= 0) return true;
-    if (amount > balance) {
-      toast.error("Insufficient funds to create event");
-      return false;
-    }
-
-    const success = await updateCoins(
-      -amount,
-      'event_creation_fee',
-      'Event creation fee',
-      { eventId }
-    );
-
-    if (success) {
-      toast.success(`Event creation fee of 🪙${amount} charged successfully`);
-    }
-    return success;
-  };
-
-  const chargeEventJoinFee = async (eventId: string, amount: number): Promise<boolean> => {
-    if (!user || amount <= 0) return true;
-    if (amount > balance) {
-      toast.error("Insufficient funds to join event");
-      return false;
-    }
-
-    const success = await updateCoins(
-      -amount,
-      'event_join_fee',
-      'Event join fee',
-      { eventId }
-    );
-
-    if (success) {
-      toast.success(`Event join fee of 🪙${amount} charged successfully`);
-    }
-    return success;
-  };
-
   return (
     <WalletContext.Provider
       value={{
         balance,
         transactions,
         isLoading,
-        depositFunds,
-        withdrawFunds,
-        chargeEventCreationFee,
-        chargeEventJoinFee,
+        ...walletActions,
         refreshWallet
       }}
     >
