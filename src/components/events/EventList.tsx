@@ -1,3 +1,4 @@
+
 import { Event } from "@/types";
 import EventCard from "./EventCard";
 import { useState } from "react";
@@ -65,12 +66,12 @@ const EventList = ({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
+      <div className="space-y-2">
         <h3 className="text-xl font-medium">{title}</h3>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
       
-      <div className={`grid grid-cols-1 gap-6 ${compact ? 'max-h-[calc(100vh-250px)] overflow-auto pb-4' : ''}`}>
+      <div className={`grid grid-cols-1 gap-4 overflow-y-auto ${compact ? 'max-h-[calc(100vh-250px)]' : ''} no-scrollbar`}>
         {events.map((event) => (
           <EventCard 
             key={event.id} 

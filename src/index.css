@@ -234,6 +234,17 @@
   }
 }
 
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 /* Import component-specific styles */
 @import "./styles/interest-tags.css";
 @import "./styles/chat.css";
