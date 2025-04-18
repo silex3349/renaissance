@@ -1,9 +1,8 @@
 
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import { Menu, Wallet } from "lucide-react";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { useWallet } from "@/contexts/WalletContext";
@@ -24,28 +23,6 @@ const Header = () => {
           Renaissance
         </Link>
         
-        <nav className="hidden sm:flex items-center space-x-6">
-          <NavLink to="/" className="nav-link" end>
-            Home
-          </NavLink>
-          <NavLink to="/events" className="nav-link">
-            Events
-          </NavLink>
-          <NavLink to="/groups" className="nav-link">
-            Groups
-          </NavLink>
-          {user && (
-            <>
-              <NavLink to="/discover" className="nav-link">
-                Discover
-              </NavLink>
-              <NavLink to="/chats" className="nav-link">
-                Chats
-              </NavLink>
-            </>
-          )}
-        </nav>
-        
         <div className="flex items-center space-x-3">
           {/* Show wallet button if user is logged in */}
           {user && (
@@ -64,26 +41,8 @@ const Header = () => {
           {user && <NotificationCenter />}
           
           {user ? (
-            <>
-              <div className="hidden sm:block">
-                <Link to="/profile">Profile</Link>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex">
-                Logout
-              </Button>
-            </>
-          ) : (
-            <div className="hidden sm:flex items-center space-x-4">
-              <Link to="/auth">Sign In</Link>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/auth">Sign Up</Link>
-              </Button>
-            </div>
-          )}
-          
-          {user && (
             <Sheet>
-              <div className="sm:hidden flex items-center">
+              <div className="flex items-center">
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
                     <Menu className="h-5 w-5" />
@@ -99,18 +58,13 @@ const Header = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link to="/events" className="block p-2 hover:bg-accent rounded-md">
-                        Events
+                      <Link to="/discover" className="block p-2 hover:bg-accent rounded-md">
+                        Discover
                       </Link>
                     </li>
                     <li>
                       <Link to="/groups" className="block p-2 hover:bg-accent rounded-md">
                         Groups
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/discover" className="block p-2 hover:bg-accent rounded-md">
-                        Discover
                       </Link>
                     </li>
                     <li>
@@ -140,6 +94,13 @@ const Header = () => {
                 </div>
               </SheetContent>
             </Sheet>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link to="/auth">Sign In</Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Sign Up</Link>
+              </Button>
+            </div>
           )}
         </div>
       </div>

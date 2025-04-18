@@ -34,22 +34,22 @@ const Layout = () => {
         <Outlet />
       </motion.main>
       
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 z-10">
+      {/* Bottom Navigation Bar - Simplified and Enhanced */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 z-10 shadow-md">
         <div className="flex justify-around items-center">
-          <Link to="/" className={`flex flex-col items-center p-2 ${isEventsActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
+          <Link to="/" className={`flex flex-col items-center p-2 ${isEventsActive ? 'text-primary font-medium' : 'text-gray-500 hover:text-primary'}`}>
             <Calendar className="h-6 w-6" />
             <span className="text-xs mt-1">Events</span>
           </Link>
-          <Link to="/chats" className={`flex flex-col items-center p-2 ${isChatsActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
+          <Link to="/chats" className={`flex flex-col items-center p-2 ${isChatsActive ? 'text-primary font-medium' : 'text-gray-500 hover:text-primary'}`}>
             <MessageSquare className="h-6 w-6" />
             <span className="text-xs mt-1">Messages</span>
           </Link>
-          <Link to="/wallet" className={`flex flex-col items-center p-2 ${isWalletActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
+          <Link to="/wallet" className={`flex flex-col items-center p-2 ${isWalletActive ? 'text-primary font-medium' : 'text-gray-500 hover:text-primary'}`}>
             <Wallet className="h-6 w-6" />
             <span className="text-xs mt-1">Wallet</span>
           </Link>
-          <Link to="/profile" className={`flex flex-col items-center p-2 ${isProfileActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
+          <Link to="/profile" className={`flex flex-col items-center p-2 ${isProfileActive ? 'text-primary font-medium' : 'text-gray-500 hover:text-primary'}`}>
             {user ? (
               <Avatar className="h-6 w-6">
                 <AvatarImage src={user.avatar || user.profileImageUrl} alt={user.name || "User"} />
@@ -61,7 +61,7 @@ const Layout = () => {
             <span className="text-xs mt-1">Profile</span>
           </Link>
         </div>
-      </div>
+      </nav>
     </div>
   );
 };
