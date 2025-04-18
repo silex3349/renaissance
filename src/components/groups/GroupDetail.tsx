@@ -1,9 +1,11 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Group, User, Event } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";  // Add this import
 import { Lock, Users, BookmarkPlus, ArrowLeft, Share2 } from "lucide-react";
 import { MOCK_EVENTS } from "@/services/mockData";
 import { useAuth } from "@/contexts/AuthContext";
