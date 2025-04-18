@@ -33,12 +33,28 @@ const GroupListView = ({ groups }: GroupListViewProps) => {
         user?.id && 
         group.creator === user.id);
     
-    // Also include public groups in "all" tab
     return matchesSearch && (matchesTab || (!group.isPrivate && activeTab === "all"));
   });
 
   return (
     <div className="pt-4 px-4">
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+        <Input
+          placeholder="Search groups..."
+          className="pl-10 pr-12 py-6 rounded-xl bg-gray-50 border-gray-200"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute right-2 top-2 text-gray-500"
+        >
+          <Filter className="h-5 w-5" />
+        </Button>
+      </div>
+
       <div className="bg-gray-100 rounded-full mb-4 p-1">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-3 w-full bg-transparent">
@@ -58,23 +74,6 @@ const GroupListView = ({ groups }: GroupListViewProps) => {
             />
           </TabsContent>
         </Tabs>
-      </div>
-
-      <div className="relative mb-4 mt-6">
-        <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-        <Input
-          placeholder="Search groups..."
-          className="pl-10 pr-12 py-6 rounded-xl bg-gray-50 border-gray-200"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="absolute right-2 top-2 text-gray-500"
-        >
-          <Filter className="h-5 w-5" />
-        </Button>
       </div>
 
       <CreateGroupDialog

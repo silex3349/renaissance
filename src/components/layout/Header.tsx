@@ -15,7 +15,7 @@ const Header = () => {
       <div className="renaissance-container py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-medium">Events</h1>
+            <h1 className="text-xl font-medium">Groups</h1>
             {user?.location && (
               <Button 
                 variant="ghost" 
