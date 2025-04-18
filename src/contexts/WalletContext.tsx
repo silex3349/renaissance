@@ -1,13 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { Transaction } from "@/types";
+import { WalletTransaction } from "@/types/wallet";
 import { fetchWalletData } from "@/utils/walletOperations";
 import { useWalletActions } from "@/hooks/useWalletActions";
 
 interface WalletContextType {
   balance: number;
-  transactions: Transaction[];
+  transactions: WalletTransaction[];
   isLoading: boolean;
   depositFunds: (amount: number) => Promise<boolean>;
   withdrawFunds: (amount: number) => Promise<boolean>;
@@ -21,7 +21,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const [balance, setBalance] = useState<number>(0);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const refreshWallet = async () => {

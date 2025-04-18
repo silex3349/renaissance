@@ -1,15 +1,15 @@
 
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
-import { Transaction } from "@/types";
+import { TransactionType, WalletTransaction, TransactionResult, WalletUpdateParams } from "@/types/wallet";
 
-export const updateCoins = async (
-  userId: string,
-  amount: number, 
-  transactionType: string, 
-  description: string, 
-  details?: any
-): Promise<boolean> => {
+export const updateCoins = async ({
+  userId,
+  amount,
+  transactionType,
+  description,
+  details
+}: WalletUpdateParams): Promise<TransactionResult> => {
   try {
     const { data, error } = await supabase.rpc('update_user_coins', {
       user_uuid: userId,
@@ -20,17 +20,24 @@ export const updateCoins = async (
     });
 
     if (error) throw error;
-    return !!data;
+
+    return {
+      success: !!data,
+      transaction: data as WalletTransaction
+    };
   } catch (error) {
     console.error(`Error updating coins:`, error);
     toast.error("Failed to process transaction");
-    return false;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
+    };
   }
 };
 
 export const fetchWalletData = async (userId: string): Promise<{
   balance: number;
-  transactions: Transaction[];
+  transactions: WalletTransaction[];
 } | null> => {
   try {
     const [profileResult, transactionsResult] = await Promise.all([
@@ -41,14 +48,15 @@ export const fetchWalletData = async (userId: string): Promise<{
     if (profileResult.error) throw profileResult.error;
     if (transactionsResult.error) throw transactionsResult.error;
 
-    const formattedTransactions: Transaction[] = (transactionsResult.data || []).map((tx: any) => ({
+    const formattedTransactions: WalletTransaction[] = (transactionsResult.data || []).map((tx: any) => ({
       id: tx.id,
-      type: tx.transaction_type,
+      type: tx.transaction_type as TransactionType,
       amount: tx.amount,
       description: tx.description || '',
       timestamp: new Date(tx.timestamp),
       status: 'completed',
-      relatedItemId: tx.details?.itemId
+      relatedItemId: tx.details?.itemId,
+      details: tx.details
     }));
 
     return {
