@@ -46,6 +46,17 @@ const GroupListView = ({ groups }: GroupListViewProps) => {
             <TabsTrigger value="joined" className="rounded-full data-[state=active]:bg-white">Joined</TabsTrigger>
             <TabsTrigger value="created" className="rounded-full data-[state=active]:bg-white">Created</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value={activeTab} className="space-y-4">
+            <GroupList 
+              groups={filteredGroups} 
+              title={
+                activeTab === "all" ? "All Groups" :
+                activeTab === "joined" ? "Joined Groups" :
+                "Groups Created By Me"
+              }
+            />
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -65,17 +76,6 @@ const GroupListView = ({ groups }: GroupListViewProps) => {
           <Filter className="h-5 w-5" />
         </Button>
       </div>
-
-      <TabsContent value={activeTab} className="space-y-4">
-        <GroupList 
-          groups={filteredGroups} 
-          title={
-            activeTab === "all" ? "All Groups" :
-            activeTab === "joined" ? "Joined Groups" :
-            "Groups Created By Me"
-          }
-        />
-      </TabsContent>
 
       <CreateGroupDialog
         open={showCreateDialog}
