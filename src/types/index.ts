@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string;
@@ -52,6 +53,8 @@ export interface Event {
   createdAt: Date;
   organizer?: string;
   groupId?: string;
+  fee?: number; // Fee for joining the event
+  creationFee?: number; // Fee for creating the event
 }
 
 export interface Interest {
@@ -98,10 +101,22 @@ export interface GroupChatMessage {
   timestamp: Date;
 }
 
-// Add Notification interface
+// Add Transaction interface
+export interface Transaction {
+  id: string;
+  userId: string;
+  type: "deposit" | "withdrawal" | "event_creation_fee" | "event_join_fee";
+  amount: number;
+  description: string;
+  timestamp: Date;
+  status: "pending" | "completed" | "failed";
+  relatedItemId?: string;
+}
+
+// Updated Notification interface with payment-related types
 export interface Notification {
   id: string;
-  type: "groupInvite" | "eventReminder" | "newMessage" | "joinRequest" | "joinRequestApproved" | "joinRequestRejected" | "joinedGroup" | "systemNotification";
+  type: "groupInvite" | "eventReminder" | "newMessage" | "joinRequest" | "joinRequestApproved" | "joinRequestRejected" | "joinedGroup" | "systemNotification" | "paymentCompleted" | "paymentFailed" | "walletUpdated";
   message: string;
   actionUrl?: string;
   timestamp: Date;

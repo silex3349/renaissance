@@ -2,9 +2,10 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
-import { Calendar, MessageSquare, User } from "lucide-react";
+import { Calendar, MessageSquare, User, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Header from "@/components/layout/Header";
 
 const Layout = () => {
   const { user } = useAuth();
@@ -17,10 +18,13 @@ const Layout = () => {
   // Determine active tab for bottom navigation
   const isEventsActive = location.pathname === "/" || location.pathname.includes("/events");
   const isChatsActive = location.pathname.includes("/chats");
+  const isWalletActive = location.pathname.includes("/wallet");
   const isProfileActive = location.pathname.includes("/profile");
 
   return (
     <div className={`min-h-screen flex flex-col ${isCustomStyledPage ? 'page-background-purple' : ''}`}>
+      <Header />
+      
       <motion.main 
         className="flex-1 pb-16" // Added padding to bottom to accommodate navigation bar
         initial={{ opacity: 0 }}
@@ -40,6 +44,10 @@ const Layout = () => {
           <Link to="/chats" className={`flex flex-col items-center p-2 ${isChatsActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
             <MessageSquare className="h-6 w-6" />
             <span className="text-xs mt-1">Messages</span>
+          </Link>
+          <Link to="/wallet" className={`flex flex-col items-center p-2 ${isWalletActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
+            <Wallet className="h-6 w-6" />
+            <span className="text-xs mt-1">Wallet</span>
           </Link>
           <Link to="/profile" className={`flex flex-col items-center p-2 ${isProfileActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
             {user ? (

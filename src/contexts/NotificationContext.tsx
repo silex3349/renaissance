@@ -75,6 +75,22 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             timestamp: new Date(Date.now() - 1800000),
             read: false,
           },
+          {
+            id: "notif_4",
+            type: "paymentCompleted",
+            message: "Payment of ₹50 for creating 'Photography Workshop' was successful",
+            actionUrl: "/wallet",
+            timestamp: new Date(Date.now() - 3600000 * 4),
+            read: false,
+          },
+          {
+            id: "notif_5",
+            type: "walletUpdated",
+            message: "₹200 has been added to your wallet",
+            actionUrl: "/wallet",
+            timestamp: new Date(Date.now() - 86400000),
+            read: false,
+          },
         ];
         setNotifications(mockNotifications);
         localStorage.setItem(`renaissance_notifications_${userId}`, JSON.stringify(mockNotifications));

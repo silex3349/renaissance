@@ -1,13 +1,17 @@
 
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Menu, Wallet } from "lucide-react";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
+import { useWallet } from "@/contexts/WalletContext";
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { balance } = useWallet();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     logout();
@@ -42,7 +46,20 @@ const Header = () => {
           )}
         </nav>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
+          {/* Show wallet button if user is logged in */}
+          {user && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => navigate("/wallet")}
+            >
+              <Wallet className="h-4 w-4" />
+              <span className="hidden sm:inline">₹{balance.toFixed(2)}</span>
+            </Button>
+          )}
+          
           {/* Always show the notification center if user is logged in */}
           {user && <NotificationCenter />}
           
@@ -99,6 +116,11 @@ const Header = () => {
                     <li>
                       <Link to="/chats" className="block p-2 hover:bg-accent rounded-md">
                         Chats
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/wallet" className="block p-2 hover:bg-accent rounded-md">
+                        Wallet - ₹{balance.toFixed(2)}
                       </Link>
                     </li>
                     <li>
