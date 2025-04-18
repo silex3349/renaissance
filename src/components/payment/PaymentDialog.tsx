@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -51,18 +50,15 @@ const PaymentDialog = ({
       let success = false;
       
       if (paymentMethod === "wallet") {
-        // Process payment using wallet
         if (purpose === "event_creation") {
           success = await chargeEventCreationFee(eventId, amount);
         } else {
           success = await chargeEventJoinFee(eventId, amount);
         }
       } else {
-        // Simulate payment processing through other methods
         await new Promise(resolve => setTimeout(resolve, 2000));
         success = true;
         
-        // Add notification for payment
         addNotification({
           type: "paymentCompleted",
           message: `Payment of ₹${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} was successful.`,
@@ -76,7 +72,6 @@ const PaymentDialog = ({
       } else {
         toast.error("Payment failed. Please try again.");
         
-        // Add notification for failed payment
         addNotification({
           type: "paymentFailed",
           message: `Payment of ₹${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} failed.`,
@@ -100,25 +95,16 @@ const PaymentDialog = ({
   const isWalletDisabled = paymentMethod === "wallet" && balance < amount;
 
   const formatCardNumber = (value: string) => {
-    // Remove non-digit characters
     const digits = value.replace(/\D/g, '');
-    
-    // Add space after every 4 digits
     const formatted = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-    
-    // Limit to 19 characters (16 digits + 3 spaces)
     return formatted.substring(0, 19);
   };
 
   const formatExpiryDate = (value: string) => {
-    // Remove non-digit characters
     const digits = value.replace(/\D/g, '');
-    
-    // Format as MM/YY
     if (digits.length > 2) {
       return `${digits.substring(0, 2)}/${digits.substring(2, 4)}`;
     }
-    
     return digits;
   };
 
@@ -144,7 +130,10 @@ const PaymentDialog = ({
               <p className="font-medium">{eventName}</p>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold">₹{amount.toFixed(2)}</p>
+              <p className="text-xl font-bold flex items-center justify-end">
+                <span className="text-lg mr-1">🪙</span>
+                {amount.toFixed(2)}
+              </p>
             </div>
           </div>
           
@@ -172,7 +161,7 @@ const PaymentDialog = ({
                         Pay from Wallet
                       </Label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Available balance: ₹{balance.toFixed(2)}
+                        Available balance: 🪙{balance.toFixed(2)}
                       </p>
                       {balance < amount && (
                         <p className="text-xs text-red-500 mt-1">
@@ -233,7 +222,6 @@ const PaymentDialog = ({
               </div>
             </RadioGroup>
             
-            {/* Card payment form */}
             {paymentMethod === "card" && (
               <div className="space-y-4 mt-6 pt-4 border-t">
                 <div className="space-y-2">
@@ -284,7 +272,6 @@ const PaymentDialog = ({
               </div>
             )}
             
-            {/* Banking/UPI form */}
             {paymentMethod === "banking" && (
               <div className="space-y-4 mt-6 pt-4 border-t">
                 <div className="grid gap-2 grid-cols-2">
@@ -350,7 +337,7 @@ const PaymentDialog = ({
                 cvv.length < 3 || 
                 !nameOnCard))}
           >
-            {isProcessing ? "Processing..." : `Pay ₹${amount.toFixed(2)}`}
+            {isProcessing ? "Processing..." : `Pay 🪙${amount.toFixed(2)}`}
           </Button>
         </DialogFooter>
       </DialogContent>

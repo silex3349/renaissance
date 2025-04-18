@@ -88,7 +88,10 @@ const WalletPage = () => {
           <CardContent>
             <div className="flex flex-col items-center justify-center p-4">
               <Wallet className="h-12 w-12 text-primary mb-4" />
-              <h2 className="text-3xl font-bold">₹{balance.toFixed(2)}</h2>
+              <h2 className="text-3xl font-bold flex items-center">
+                <span className="text-xl mr-1 text-secondary-foreground">🪙</span>
+                {balance.toFixed(2)}
+              </h2>
               <p className="text-muted-foreground text-sm mt-1">Available Balance</p>
             </div>
             
@@ -106,7 +109,7 @@ const WalletPage = () => {
                   </DialogHeader>
                   <div className="py-4">
                     <div className="flex items-center">
-                      <span className="text-lg mr-2">₹</span>
+                      <span className="text-lg mr-2">🪙</span>
                       <Input
                         type="number"
                         min="1"
@@ -152,7 +155,7 @@ const WalletPage = () => {
                   </DialogHeader>
                   <div className="py-4">
                     <div className="flex items-center">
-                      <span className="text-lg mr-2">₹</span>
+                      <span className="text-lg mr-2">🪙</span>
                       <Input
                         type="number"
                         min="1"
@@ -166,7 +169,7 @@ const WalletPage = () => {
                     
                     <div className="mt-4">
                       <p className="text-sm text-muted-foreground">
-                        Available balance: ₹{balance.toFixed(2)}
+                        Available balance: 🪙{balance.toFixed(2)}
                       </p>
                     </div>
                     
@@ -239,7 +242,7 @@ const WalletPage = () => {
                         
                         <div className="text-right">
                           <p className={`font-medium ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toFixed(2)}
+                            {transaction.amount > 0 ? '+' : ''}🪙{Math.abs(transaction.amount).toFixed(2)}
                           </p>
                           <div className="mt-1">
                             {getTransactionStatusBadge(transaction.status)}
