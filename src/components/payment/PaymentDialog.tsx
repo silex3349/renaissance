@@ -1,14 +1,14 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Wallet, CreditCard, Landmark } from "lucide-react";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { useWallet } from "@/contexts/WalletContext";
-import { toast } from "sonner";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { toast } from "sonner";
+import WalletPayment from "./methods/WalletPayment";
+import CardPayment from "./methods/CardPayment";
+import BankingPayment from "./methods/BankingPayment";
 
 interface PaymentDialogProps {
   open: boolean;
@@ -39,7 +39,7 @@ const PaymentDialog = ({
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
   const [nameOnCard, setNameOnCard] = useState("");
-  
+
   const { balance, chargeEventCreationFee, chargeEventJoinFee } = useWallet();
   const { addNotification } = useNotifications();
 
@@ -61,7 +61,7 @@ const PaymentDialog = ({
         
         addNotification({
           type: "paymentCompleted",
-          message: `Payment of ₹${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} was successful.`,
+          message: `Payment of 🪙${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} was successful.`,
           actionUrl: purpose === "event_creation" ? `/events/create` : `/events/${eventId}`
         });
       }
@@ -74,7 +74,7 @@ const PaymentDialog = ({
         
         addNotification({
           type: "paymentFailed",
-          message: `Payment of ₹${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} failed.`,
+          message: `Payment of 🪙${amount} for ${purpose === "event_creation" ? "creating" : "joining"} ${eventName} failed.`,
           actionUrl: "/wallet"
         });
       }
@@ -93,20 +93,6 @@ const PaymentDialog = ({
   };
 
   const isWalletDisabled = paymentMethod === "wallet" && balance < amount;
-
-  const formatCardNumber = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    const formatted = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-    return formatted.substring(0, 19);
-  };
-
-  const formatExpiryDate = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length > 2) {
-      return `${digits.substring(0, 2)}/${digits.substring(2, 4)}`;
-    }
-    return digits;
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -143,184 +129,25 @@ const PaymentDialog = ({
               onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
               className="space-y-3"
             >
+              <WalletPayment balance={balance} amount={amount} />
+              
               <div>
-                <Card className={`relative p-4 border-2 ${paymentMethod === "wallet" ? "border-primary" : "border-muted"}`}>
-                  <RadioGroupItem
-                    value="wallet"
-                    id="wallet"
-                    className="absolute right-4 top-4"
-                    disabled={balance < amount}
-                  />
-                  <div className="flex items-start">
-                    <Wallet className="h-5 w-5 mr-3 mt-0.5 text-primary" />
-                    <div>
-                      <Label
-                        htmlFor="wallet"
-                        className={`font-medium ${balance < amount ? "text-muted-foreground" : ""}`}
-                      >
-                        Pay from Wallet
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Available balance: 🪙{balance.toFixed(2)}
-                      </p>
-                      {balance < amount && (
-                        <p className="text-xs text-red-500 mt-1">
-                          Insufficient balance. Please add money to your wallet.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Card>
+                <CardPayment 
+                  cardNumber={cardNumber}
+                  expiryDate={expiryDate}
+                  cvv={cvv}
+                  nameOnCard={nameOnCard}
+                  onCardNumberChange={setCardNumber}
+                  onExpiryDateChange={setExpiryDate}
+                  onCvvChange={setCvv}
+                  onNameChange={setNameOnCard}
+                />
               </div>
               
               <div>
-                <Card className={`relative p-4 border-2 ${paymentMethod === "card" ? "border-primary" : "border-muted"}`}>
-                  <RadioGroupItem
-                    value="card"
-                    id="card"
-                    className="absolute right-4 top-4"
-                  />
-                  <div className="flex items-start">
-                    <CreditCard className="h-5 w-5 mr-3 mt-0.5 text-primary" />
-                    <div>
-                      <Label
-                        htmlFor="card"
-                        className="font-medium"
-                      >
-                        Credit/Debit Card
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Pay using Visa, Mastercard, or Rupay
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-              
-              <div>
-                <Card className={`relative p-4 border-2 ${paymentMethod === "banking" ? "border-primary" : "border-muted"}`}>
-                  <RadioGroupItem
-                    value="banking"
-                    id="banking"
-                    className="absolute right-4 top-4"
-                  />
-                  <div className="flex items-start">
-                    <Landmark className="h-5 w-5 mr-3 mt-0.5 text-primary" />
-                    <div>
-                      <Label
-                        htmlFor="banking"
-                        className="font-medium"
-                      >
-                        Net Banking/UPI
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Pay using your bank account or UPI
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                <BankingPayment />
               </div>
             </RadioGroup>
-            
-            {paymentMethod === "card" && (
-              <div className="space-y-4 mt-6 pt-4 border-t">
-                <div className="space-y-2">
-                  <Label htmlFor="cardNumber">Card Number</Label>
-                  <Input
-                    id="cardNumber"
-                    placeholder="1234 5678 9012 3456"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                    maxLength={19}
-                  />
-                </div>
-                
-                <div className="flex gap-4">
-                  <div className="space-y-2 flex-1">
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
-                    <Input
-                      id="expiryDate"
-                      placeholder="MM/YY"
-                      value={expiryDate}
-                      onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                      maxLength={5}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2 w-24">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input
-                      id="cvv"
-                      type="password"
-                      placeholder="123"
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').substring(0, 3))}
-                      maxLength={3}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="nameOnCard">Name on Card</Label>
-                  <Input
-                    id="nameOnCard"
-                    placeholder="John Doe"
-                    value={nameOnCard}
-                    onChange={(e) => setNameOnCard(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-            
-            {paymentMethod === "banking" && (
-              <div className="space-y-4 mt-6 pt-4 border-t">
-                <div className="grid gap-2 grid-cols-2">
-                  <Button variant="outline" className="p-6 h-auto flex flex-col">
-                    <img 
-                      src="https://api.dicebear.com/7.x/shapes/svg?seed=bank1" 
-                      alt="Bank 1" 
-                      className="h-8 w-8 mb-2" 
-                    />
-                    <span className="text-xs">HDFC Bank</span>
-                  </Button>
-                  
-                  <Button variant="outline" className="p-6 h-auto flex flex-col">
-                    <img 
-                      src="https://api.dicebear.com/7.x/shapes/svg?seed=bank2" 
-                      alt="Bank 2"
-                      className="h-8 w-8 mb-2" 
-                    />
-                    <span className="text-xs">ICICI Bank</span>
-                  </Button>
-                  
-                  <Button variant="outline" className="p-6 h-auto flex flex-col">
-                    <img 
-                      src="https://api.dicebear.com/7.x/shapes/svg?seed=bank3" 
-                      alt="Bank 3"
-                      className="h-8 w-8 mb-2" 
-                    />
-                    <span className="text-xs">SBI</span>
-                  </Button>
-                  
-                  <Button variant="outline" className="p-6 h-auto flex flex-col">
-                    <img 
-                      src="https://api.dicebear.com/7.x/shapes/svg?seed=bank4" 
-                      alt="Bank 4"
-                      className="h-8 w-8 mb-2" 
-                    />
-                    <span className="text-xs">Axis Bank</span>
-                  </Button>
-                </div>
-                
-                <div className="space-y-2 mt-4">
-                  <Label>UPI ID</Label>
-                  <div className="flex gap-2">
-                    <Input placeholder="yourname@upi" className="flex-1" />
-                    <Button type="button" className="shrink-0">Verify</Button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
         
