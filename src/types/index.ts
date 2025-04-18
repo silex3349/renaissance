@@ -19,6 +19,7 @@ export interface User {
     min: number;
     max: number;
   };
+  user_category?: 'new' | 'active' | 'hibernating' | 'inactive';
   createdAt: Date;
   watchlist?: any;
   settings?: {
