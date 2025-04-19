@@ -1,4 +1,3 @@
-
 import { Event } from "@/types";
 import EventCard from "./EventCard";
 import { useState } from "react";
@@ -7,12 +6,22 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface EventListProps {
   events: Event[];
+  title?: string;
+  compact?: boolean;
+  showMap?: boolean;
   onShowFilterSheet?: () => void;
+  onToggleMap?: () => void;
+  onJoinEvent?: (eventId: string) => void;
 }
 
 const EventList = ({ 
   events,
+  title,
+  compact,
+  showMap,
   onShowFilterSheet,
+  onToggleMap,
+  onJoinEvent,
 }: EventListProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -29,10 +38,16 @@ const EventList = ({
     }
 
     setJoiningEvent(eventId);
-    toast({
-      title: "Event joined!",
-      description: "You have successfully joined this event.",
-    });
+    
+    if (onJoinEvent) {
+      onJoinEvent(eventId);
+    } else {
+      toast({
+        title: "Event joined!",
+        description: "You have successfully joined this event.",
+      });
+    }
+    
     setJoiningEvent(null);
   };
 
@@ -45,14 +60,31 @@ const EventList = ({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4">
-      {events.map((event) => (
-        <EventCard 
-          key={event.id} 
-          event={event} 
-          onJoin={handleJoinEvent}
-        />
-      ))}
+    <div className="space-y-4">
+      {title && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          {onToggleMap && (
+            <button 
+              onClick={onToggleMap}
+              className="text-sm text-primary"
+            >
+              {showMap ? "Show List" : "Show Map"}
+            </button>
+          )}
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 gap-4">
+        {events.map((event) => (
+          <EventCard 
+            key={event.id} 
+            event={event} 
+            compact={compact}
+            onJoin={handleJoinEvent}
+          />
+        ))}
+      </div>
     </div>
   );
 };
