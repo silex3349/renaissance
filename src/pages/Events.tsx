@@ -8,22 +8,17 @@ import { Event, Group } from "@/types";
 import CreateEventForm from "@/components/events/CreateEventForm";
 import LocationDetection from "@/components/location/LocationDetection";
 import FilterSheet from "@/components/events/FilterSheet";
-import EventTabView from "@/components/events/EventTabView";
-import ViewModeTabs from "@/components/events/ViewModeTabs";
-import DiscoverView from "@/components/events/DiscoverView";
+import EventList from "@/components/events/EventList";
 import EventDetailView from "@/components/events/EventDetailView";
-import CreateButton from "@/components/events/CreateButton";
 
 const Events = () => {
   const { id } = useParams();
   const { user } = useAuth();
   
   // State management
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showCreateEventSheet, setShowCreateEventSheet] = useState(false);
-  const [locationPromptVisible, setLocationPromptVisible] = useState(false);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "discover" | "groups">("list");
+  const [locationPromptVisible, setLocationPromptVisible] = useState(false);
   
   // Mock data
   const typedMockEvents = MOCK_EVENTS as Event[];
@@ -32,10 +27,6 @@ const Events = () => {
   const handleLocationDetected = () => {
     setLocationPromptVisible(false);
     setShowFilterSheet(false);
-  };
-  
-  const handleCreateButtonClick = () => {
-    setShowCreateEventSheet(true);
   };
   
   if (locationPromptVisible) {
@@ -65,42 +56,23 @@ const Events = () => {
   
   return (
     <div className="min-h-screen pb-20">
-      <div className="pt-4 px-4">
-        <ViewModeTabs viewMode={viewMode} onChange={setViewMode} />
-        
-        {viewMode === "list" && (
-          <EventTabView 
-            events={typedMockEvents}
-            onShowFilterSheet={() => setShowFilterSheet(true)}
-          />
-        )}
-        
-        {viewMode === "discover" && (
-          <DiscoverView events={typedMockEvents} />
-        )}
-        
-        {viewMode === "groups" && (
-          <div>Group view content</div>
-        )}
-        
-        <CreateButton 
-          viewMode={viewMode}
-          onClick={handleCreateButtonClick}
-        />
-        
-        <FilterSheet 
-          open={showFilterSheet} 
-          onOpenChange={setShowFilterSheet}
-          filterOnlyNearby={false}
-          onFilterChange={() => {}}
-          onLocationDetected={handleLocationDetected}
-        />
-        
-        <CreateGroupDialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
-        />
-      </div>
+      <EventList 
+        events={typedMockEvents}
+        onShowFilterSheet={() => setShowFilterSheet(true)}
+      />
+      
+      <FilterSheet 
+        open={showFilterSheet} 
+        onOpenChange={setShowFilterSheet}
+        filterOnlyNearby={false}
+        onFilterChange={() => {}}
+        onLocationDetected={handleLocationDetected}
+      />
+      
+      <CreateGroupDialog
+        open={false}
+        onOpenChange={() => {}}
+      />
     </div>
   );
 };

@@ -35,14 +35,6 @@ const MainLayout = () => {
     }
   };
 
-  // Navigation items for the bottom bar
-  const navItems = [
-    { name: "Events", path: "/events", icon: Calendar },
-    { name: "Groups", path: "/groups", icon: Users },
-    { name: "Messages", path: "/messages", icon: MessageSquare },
-    { name: "Profile", path: "/profile", icon: UserCircle2 },
-  ];
-
   // Filter options that appear as pills
   const filterOptions = [
     { label: "Events", path: "/events" },
@@ -57,6 +49,14 @@ const MainLayout = () => {
     if (path === "/events" && pathname === "/") return true;
     return pathname.startsWith(path);
   };
+
+  // Bottom navigation items
+  const navItems = [
+    { name: "Events", path: "/events", icon: Calendar },
+    { name: "Groups", path: "/groups", icon: Users },
+    { name: "Messages", path: "/messages", icon: MessageSquare },
+    { name: "Profile", path: "/profile", icon: UserCircle2 },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
