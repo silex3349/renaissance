@@ -1,17 +1,23 @@
 
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Calendar, Users, MessageSquare, UserCircle2, Search, Filter } from "lucide-react";
+import { Calendar, Users, MessageSquare, UserCircle2, Search, Filter, Wallet, Bell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import CreateButton from "@/components/events/CreateButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { useWallet } from "@/contexts/WalletContext";
+import WalletBalance from "@/components/wallet/WalletBalance";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 const MainLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
+  const { user } = useAuth();
+  const { balance } = useWallet();
   
   // Helper to get the current section name
   const getSectionName = () => {
@@ -37,9 +43,7 @@ const MainLayout = () => {
 
   // Filter options that appear as pills
   const filterOptions = [
-    { label: "Events", path: "/events" },
     { label: "Discover", path: "/discover" },
-    { label: "Groups", path: "/groups" },
     { label: "All", path: "/events?filter=all" },
     { label: "Joined", path: "/events?filter=joined" },
     { label: "Created", path: "/events?filter=created" },
@@ -60,10 +64,14 @@ const MainLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Dynamic Title */}
+      {/* Header with Title and Icons */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
+        <div className="container flex h-14 items-center justify-between">
           <h1 className="text-xl font-semibold">{getSectionName()}</h1>
+          <div className="flex items-center gap-3">
+            <WalletBalance balance={balance} />
+            <NotificationCenter />
+          </div>
         </div>
       </header>
 
@@ -74,9 +82,14 @@ const MainLayout = () => {
           <Input 
             placeholder="Search events..." 
             className="pl-8"
+            onFocus={() => navigate('/discover')}
           />
         </div>
-        <Button variant="outline" size="icon">
+        <Button 
+          variant="outline" 
+          size="icon"
+          onClick={() => navigate('/events?showFilter=true')}
+        >
           <Filter className="h-4 w-4" />
         </Button>
       </div>

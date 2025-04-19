@@ -1,11 +1,14 @@
+
 import { Event } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, Bookmark, BookmarkPlus, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Users, Bookmark, BookmarkPlus, ExternalLink, Coins } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useWallet } from "@/contexts/WalletContext";
+import { Badge } from "@/components/ui/badge";
 
 interface EventCardProps {
   event: Event;
@@ -16,6 +19,7 @@ interface EventCardProps {
 const EventCard = ({ event, onJoin, compact }: EventCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { balance } = useWallet();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   
@@ -36,9 +40,23 @@ const EventCard = ({ event, onJoin, compact }: EventCardProps) => {
   const isFullyBooked = event.maxAttendees 
     ? event.attendees.length >= event.maxAttendees 
     : false;
+  
+  // Mock event join cost - in a real app this would come from the backend
+  const joinCost = event.inGroup ? 10 : 25;
+  const canAffordJoin = balance >= joinCost;
     
   const handleJoin = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    if (!canAffordJoin) {
+      toast({
+        title: "Insufficient coins",
+        description: `You need ${joinCost} coins to join this event. Current balance: ${balance} coins.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (onJoin) {
       setIsJoining(true);
       // Simulate API delay
@@ -92,13 +110,19 @@ const EventCard = ({ event, onJoin, compact }: EventCardProps) => {
               <span>{formatDate(new Date(event.dateTime))}</span>
             </div>
           </div>
-          <Button
-            onClick={handleJoin}
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full"
-            disabled={isFullyBooked || isJoining}
-          >
-            {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join"}
-          </Button>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant="outline" className="flex items-center gap-1 text-xs">
+              <Coins className="h-3 w-3" />
+              {joinCost}
+            </Badge>
+            <Button
+              onClick={handleJoin}
+              className={`bg-blue-500 hover:bg-blue-600 text-white rounded-full ${!canAffordJoin ? 'opacity-70' : ''}`}
+              disabled={isFullyBooked || isJoining || !canAffordJoin}
+            >
+              {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join"}
+            </Button>
+          </div>
         </div>
       ) : (
         <Card className="border-0">
@@ -179,13 +203,20 @@ const EventCard = ({ event, onJoin, compact }: EventCardProps) => {
               </button>
             </div>
             
-            <Button
-              onClick={handleJoin}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-full"
-              disabled={isFullyBooked || isJoining}
-            >
-              {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join Event"}
-            </Button>
+            <div className="flex items-center justify-between">
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Coins className="h-4 w-4" />
+                {joinCost} coins
+              </Badge>
+              
+              <Button
+                onClick={handleJoin}
+                className={`bg-blue-500 hover:bg-blue-600 text-white rounded-full ${!canAffordJoin ? 'opacity-70' : ''}`}
+                disabled={isFullyBooked || isJoining || !canAffordJoin}
+              >
+                {isJoining ? "Joining..." : isFullyBooked ? "Fully Booked" : "Join Event"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

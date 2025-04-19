@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { MOCK_EVENTS, MOCK_GROUPS, MOCK_USERS } from "@/services/mockData";
 import CreateGroupDialog from "@/components/groups/CreateGroupDialog";
@@ -10,15 +10,28 @@ import LocationDetection from "@/components/location/LocationDetection";
 import FilterSheet from "@/components/events/FilterSheet";
 import EventList from "@/components/events/EventList";
 import EventDetailView from "@/components/events/EventDetailView";
+import EventTabView from "@/components/events/EventTabView";
 
 const Events = () => {
   const { id } = useParams();
+  const location = useLocation();
   const { user } = useAuth();
   
   // State management
   const [showCreateEventSheet, setShowCreateEventSheet] = useState(false);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [locationPromptVisible, setLocationPromptVisible] = useState(false);
+  
+  // Get query parameters
+  const searchParams = new URLSearchParams(location.search);
+  const showFilter = searchParams.get('showFilter') === 'true';
+  
+  // Show filter sheet when showFilter is true in URL
+  useEffect(() => {
+    if (showFilter) {
+      setShowFilterSheet(true);
+    }
+  }, [showFilter]);
   
   // Mock data
   const typedMockEvents = MOCK_EVENTS as Event[];
@@ -56,7 +69,7 @@ const Events = () => {
   
   return (
     <div className="min-h-screen pb-20">
-      <EventList 
+      <EventTabView
         events={typedMockEvents}
         onShowFilterSheet={() => setShowFilterSheet(true)}
       />
