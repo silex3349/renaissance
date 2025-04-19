@@ -41,8 +41,8 @@ const EventCard = ({ event, onJoin, compact }: EventCardProps) => {
     ? event.attendees.length >= event.maxAttendees 
     : false;
   
-  // Mock event join cost - in a real app this would come from the backend
-  const joinCost = event.inGroup ? 10 : 25;
+  // Fix: Check for groupId property instead of inGroup
+  const joinCost = event.groupId ? 10 : 25;
   const canAffordJoin = balance >= joinCost;
     
   const handleJoin = (e: React.MouseEvent) => {
